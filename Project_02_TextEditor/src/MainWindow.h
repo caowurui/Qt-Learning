@@ -17,7 +17,16 @@ public:
 private:
     void createMenuBar();
 
+private slots:
+    void newFile();
+    bool openFile();
+    bool saveFile();
+
+
+private:
     QTextEdit *textEdit;
+
+    QString currentFile;
 };
 
 #endif
