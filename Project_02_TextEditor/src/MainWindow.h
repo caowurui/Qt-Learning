@@ -16,6 +16,8 @@ public:
 
 private:
     void createMenuBar();
+    void createFileMenu();
+    void createEditMenu();
 
 private slots:
     void newFile();

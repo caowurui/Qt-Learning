@@ -22,6 +22,12 @@ MainWindow::~MainWindow()
 
 void MainWindow::createMenuBar()
 {
+    createFileMenu();
+    createEditMenu();
+}
+
+void MainWindow::createFileMenu()
+{
     QMenu *fileMenu = menuBar()->addMenu("文件(&F)");
 
     // 新建
@@ -47,7 +53,33 @@ void MainWindow::createMenuBar()
     QAction *exitAction = fileMenu->addAction("退出(&Q)");
     exitAction->setShortcut(QKeySequence("Ctrl+Q"));
     connect(exitAction,&QAction::triggered,qApp,&QApplication::quit);
+}
 
+void MainWindow::createEditMenu()
+{
+    QMenu *editMenu = menuBar()->addMenu("编辑(&E)");
+
+    QAction *undoAction = editMenu->addAction("撤销(&U)");
+    undoAction->setShortcut(QKeySequence("Ctrl+Z"));
+    connect(undoAction, &QAction::triggered, textEdit, &QTextEdit::undo);
+
+    QAction *redoAction = editMenu->addAction("重做(&R)");
+    redoAction->setShortcut(QKeySequence("Ctrl+Y"));
+    connect(redoAction, &QAction::triggered, textEdit, &QTextEdit::redo);
+
+    editMenu->addSeparator();
+
+    QAction *cutAction = editMenu->addAction("剪切(&T)");
+    cutAction->setShortcut(QKeySequence("Ctrl+X"));
+    connect(cutAction, &QAction::triggered, textEdit, &QTextEdit::cut);
+
+    QAction *copyAction = editMenu->addAction("复制(&C)");
+    copyAction->setShortcut(QKeySequence("Ctrl+C"));
+    connect(copyAction, &QAction::triggered, textEdit, &QTextEdit::copy);
+
+    QAction *pasteAction = editMenu->addAction("粘贴(&V)");
+    pasteAction->setShortcut(QKeySequence("Ctrl+V"));
+    connect(pasteAction, &QAction::triggered, textEdit, &QTextEdit::paste);
 }
 
 void MainWindow::newFile()
