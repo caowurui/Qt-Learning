@@ -4,7 +4,8 @@
 #include <QMainWindow>
 
 class QTextEdit;
-class QAction;
+// class QString;
+class QLabel;
 
 class MainWindow : public QMainWindow
 {
@@ -14,6 +15,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+// Menu
 private:
     void createMenuBar();
     void createFileMenu();
@@ -24,9 +26,15 @@ private slots:
     bool openFile();
     bool saveFile();
 
+private:
+    void createStatusBar();
+    void updateStatusBar();
+
 
 private:
     QTextEdit *textEdit;
+
+    QLabel *cursorLabel;
 
     QString currentFile;
 };

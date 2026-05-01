@@ -5,7 +5,8 @@
 #include <QApplication>
 #include <QFileDialog>
 #include <QMessageBox>
-
+#include <QLabel>
+#include <QStatusBar>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -14,6 +15,8 @@ MainWindow::MainWindow(QWidget *parent)
     setCentralWidget(textEdit);
 
     createMenuBar();
+
+    createStatusBar();
 }
 
 MainWindow::~MainWindow()
@@ -132,4 +135,20 @@ bool MainWindow::saveFile()
 
     setWindowTitle(currentFile);
     return true;
+}
+
+void MainWindow::createStatusBar()
+{
+    cursorLabel = new QLabel("行数: 1, 列数: 1");
+    statusBar()->addPermanentWidget(cursorLabel);
+    connect(textEdit,&QTextEdit::cursorPositionChanged,
+        this,&MainWindow::updateStatusBar);
+}
+
+void MainWindow::updateStatusBar()
+{
+    QTextCursor cursor = textEdit->textCursor();
+    int line = cursor.blockNumber() + 1;
+    int col = cursor.columnNumber() + 1;
+    cursorLabel->setText(QString("行数: %1, 列数: %2").arg(line).arg(col));
 }

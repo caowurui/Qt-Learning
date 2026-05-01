@@ -35,7 +35,7 @@
   - `QTextEdit` 已内置这些操作，只需调用对应槽函数
   - 涉及类：`QTextEdit`（`undo()`, `redo()`, `cut()`, `copy()`, `paste()`）
 
-- [ ] **5. 添加状态栏**
+- [x] **5. 添加状态栏**
   - 在窗口底部显示光标所在的行号、列号
   - 监听 `QTextEdit` 的光标位置变化信号 `cursorPositionChanged()`
   - 涉及类：`QStatusBar`, `QLabel`, `QTextEdit`
