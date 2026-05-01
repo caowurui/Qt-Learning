@@ -1,0 +1,23 @@
+# 构建目录
+build_root/
+build/
+**/build/
+
+# Qt 自动生成
+**/CMakeFiles/
+**/*_autogen/
+**/.qt/
+
+# 编译产物
+*.exe
+*.obj
+*.lib
+*.pdb
+*.exp
+*.ilk
+*.dll
+
+# IDE
+.vscode/
+.idea/
+*.user

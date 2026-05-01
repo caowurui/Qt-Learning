@@ -1,0 +1,53 @@
+[
+  // ==================== 构建任务 ====================
+  {
+    "label": "Build All",
+    "command": "cmake --build build_root",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always",
+    "hide": "never",
+    "tags": ["build", "all"],
+  },
+  {
+    "label": "Reconfigure + Build",
+    "command": "cd build_root && cmake .. -G Ninja && cmake --build .",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always",
+    "hide": "never",
+    "tags": ["build", "reconfigure"],
+  },
+  // ==================== Project 01 ====================
+  {
+    "label": "Run Project 01",
+    "command": "./build_root/Project_01_ArgumentParser/Project_01_ArgumentParser.exe",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always",
+    "hide": "never",
+    "tags": ["run", "project01"],
+  },
+  {
+    "label": "Run Project 01 Tests",
+    "command": "./build_root/Project_01_ArgumentParser/Project_01_ArgumentParser_tests.exe",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always",
+    "hide": "never",
+    "tags": ["test", "project01"],
+  },
+  // ==================== Project 02 ====================
+  {
+    "label": "Run Project 02",
+    "command": "./build_root/Project_02_TextEditor/Project_02_TextEditor.exe",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always",
+    "hide": "never",
+    "tags": ["run", "project02"],
+  },
+  {
+    "label": "Run Project 02 Tests",
+    "command": "./build_root/Project_02_TextEditor/Project_02_TextEditor_tests.exe",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always",
+    "hide": "never",
+    "tags": ["test", "project02"],
+  },
+]

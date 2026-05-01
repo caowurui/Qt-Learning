@@ -1,0 +1,37 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "default",
+            "displayName": "Clang + MSVC Qt",
+            "description": "使用Clang编译器 + MSVC版本的Qt6",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CMAKE_CXX_STANDARD": "11",
+                "CMAKE_CXX_STANDARD_REQUIRED": "ON",
+                "Qt6_DIR": "C:/Qt/6.10.1/msvc2022_64/lib/cmake/Qt6"
+            }
+        },
+        {
+            "name": "release",
+            "displayName": "Release模式",
+            "description": "使用Clang编译器 + MSVC版本的Qt6 (Release)",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "Qt6_DIR": "C:/Qt/6.10.1/msvc2022_64/lib/cmake/Qt6"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "default",
+            "configurePreset": "default"
+        }
+    ]
+}
