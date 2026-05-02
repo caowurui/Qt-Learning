@@ -1,20 +1,30 @@
 #include "MainWindow.h"
 #include "FindReplaceDialog.h"
 #include "SyntaxHighlighter.h"
+#include "LineNumber.h"
 #include <QTextEdit>
-#include <QMenu>
 #include <QMenuBar>
 #include <QApplication>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QLabel>
 #include <QStatusBar>
+#include <QHBoxLayout>
+#include <QScrollBar>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    textEdit = new QTextEdit(this);
-    setCentralWidget(textEdit);
+    QWidget *container = new QWidget();
+    QHBoxLayout *layout = new QHBoxLayout(container);
+    textEdit = new QTextEdit();
+    lineNumberWidget = new LineNumberWidget(textEdit);
+    lineNumberWidget->setFixedWidth(35);
+    layout->setSpacing(0);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(lineNumberWidget);
+    layout->addWidget(textEdit);
+    setCentralWidget(container);
 
     findDialog = nullptr;
 
@@ -23,6 +33,14 @@ MainWindow::MainWindow(QWidget *parent)
     createStatusBar();
 
     highlighter = new SyntaxHighlighter(textEdit->document());
+
+    // 编辑器滚动时刷新行号
+    connect(textEdit->verticalScrollBar(), &QScrollBar::valueChanged,
+            lineNumberWidget, [this]() { lineNumberWidget->update(); });
+
+    // 文本内容变化时刷新行号
+    connect(textEdit, &QTextEdit::textChanged,
+            lineNumberWidget, [this]() { lineNumberWidget->update(); });
 }
 
 MainWindow::~MainWindow()

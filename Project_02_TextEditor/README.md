@@ -54,7 +54,7 @@
   - 为字符串字面量和注释设置颜色
   - 涉及类：`QSyntaxHighlighter`, `QTextCharFormat`, `QRegularExpression`
 
-- [ ] **8. 添加行号显示**
+- [x] **8. 添加行号显示**
   - 在编辑器左侧显示行号区域
   - 监听编辑器的滚动和内容变化，同步更新行号
   - 涉及类：`QWidget`（自定义绘制）, `QPainter`, `QTextBlock`
@@ -82,11 +82,15 @@ Project_02_TextEditor/
     ├── main.cpp                    # 主程序入口
     ├── MainWindow.h                # 主窗口头文件
     ├── MainWindow.cpp              # 主窗口实现
-    └── tests/
-        └── test_editor.cpp         # 编辑器测试
+    ├── FindReplaceDialog.h         # 查找替换头文件
+    ├── FindReplaceDialog.cpp       # 查找替换实现
+    ├── SyntaxHighlighter.h         # 语法高亮头文件
+    ├── SyntaxHighlighter.cpp       # 语法高亮实现
+    ├── LineNumber.h                # 行号头文件
+    └── LineNumber.cpp              # 行号实现
 ```
 
-*（后续步骤中可能需要添加更多文件，如 `SyntaxHighlighter.h/cpp` 等）*
+*（后续步骤中可能需要添加更多文件）*
 
 ---
 

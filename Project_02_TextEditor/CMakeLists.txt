@@ -15,12 +15,14 @@ set(SOURCES
     src/MainWindow.cpp
     src/FindReplaceDialog.cpp
     src/SyntaxHighlighter.cpp
+    src/LineNumber.cpp
 )
 
 set(HEADERS
     src/MainWindow.h
     src/FindReplaceDialog.h
     src/SyntaxHighlighter.h
+    src/LineNumber.h
 )
 
 # 创建可执行文件

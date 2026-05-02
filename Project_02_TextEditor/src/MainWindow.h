@@ -7,6 +7,7 @@ class QTextEdit;
 class QLabel;
 class FindReplaceDialog;
 class SyntaxHighlighter;
+class LineNumberWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -48,6 +49,7 @@ private:
     QString currentFile;
     FindReplaceDialog *findDialog;
     SyntaxHighlighter *highlighter;
+    LineNumberWidget *lineNumberWidget;
 };
 
 #endif
