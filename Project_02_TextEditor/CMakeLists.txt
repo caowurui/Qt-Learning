@@ -10,8 +10,16 @@ set(CMAKE_BUILD_TYPE Debug)
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 
 # 添加源文件
-file(GLOB_RECURSE SOURCES "src/*.cpp")
-file(GLOB_RECURSE HEADERS "src/*.h")
+set(SOURCES
+    src/main.cpp
+    src/MainWindow.cpp
+    src/FindReplaceDialog.cpp
+)
+
+set(HEADERS
+    src/MainWindow.h
+    src/FindReplaceDialog.h
+)
 
 # 创建可执行文件
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})

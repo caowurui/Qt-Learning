@@ -1,4 +1,5 @@
 #include "MainWindow.h"
+#include "FindReplaceDialog.h"
 #include <QTextEdit>
 #include <QMenu>
 #include <QMenuBar>
@@ -13,6 +14,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     textEdit = new QTextEdit(this);
     setCentralWidget(textEdit);
+
+    findDialog = nullptr;
 
     createMenuBar();
 
@@ -83,13 +86,23 @@ void MainWindow::createEditMenu()
     QAction *pasteAction = editMenu->addAction("粘贴(&V)");
     pasteAction->setShortcut(QKeySequence("Ctrl+V"));
     connect(pasteAction, &QAction::triggered, textEdit, &QTextEdit::paste);
+
+    editMenu->addSeparator();
+
+    QAction *findAction = editMenu->addAction("查找(&F)...");
+    findAction->setShortcut(QKeySequence("Ctrl+F"));
+    connect(findAction, &QAction::triggered, this, &MainWindow::showFindDialog);
+
+    QAction *replaceAction = editMenu->addAction("替换(&R)...");
+    replaceAction->setShortcut(QKeySequence("Ctrl+H"));
+    connect(replaceAction, &QAction::triggered, this, &MainWindow::showFindDialog);
 }
 
 void MainWindow::newFile()
 {
     textEdit->clear();
     currentFile.clear();
-    setWindowTitle("未命名");
+    setWindowTitle("文本编辑器 - 未命名");
 }
 
 bool MainWindow::openFile()
@@ -109,7 +122,7 @@ bool MainWindow::openFile()
     file.close();
 
     currentFile = fileName;
-    setWindowTitle(fileName);
+    setWindowTitle(QString("文本编辑器 - ")+fileName);
 
     return true;
 }
@@ -151,4 +164,84 @@ void MainWindow::updateStatusBar()
     int line = cursor.blockNumber() + 1;
     int col = cursor.columnNumber() + 1;
     cursorLabel->setText(QString("行数: %1, 列数: %2").arg(line).arg(col));
+}
+
+void MainWindow::showFindDialog()
+{
+    if (!findDialog) {
+        findDialog = new FindReplaceDialog(this);
+        connect(findDialog, &FindReplaceDialog::findNext,
+                this, &MainWindow::findNext);
+        connect(findDialog, &FindReplaceDialog::replace,
+                this, &MainWindow::replace);
+        connect(findDialog, &FindReplaceDialog::replaceAll,
+                this, &MainWindow::replaceAll);
+    }
+    findDialog->show();
+    findDialog->raise();
+    findDialog->activateWindow();
+}
+
+void MainWindow::findNext(const QString &text)
+{
+    if (text.isEmpty())
+        return;
+
+    // 从当前光标向后查找
+    bool found = textEdit->find(text);
+
+    if (!found) {
+        // 没找到，从文档开头重头查一遍
+        QTextCursor cursor = textEdit->textCursor();
+        cursor.movePosition(QTextCursor::Start);
+        textEdit->setTextCursor(cursor);
+
+        found = textEdit->find(text);
+        if (!found) {
+            statusBar()->showMessage("未找到: " + text, 3000);
+        }
+    }
+}
+
+void MainWindow::replace(const QString &findText, const QString &replaceText)
+{
+    if (findText.isEmpty())
+        return;
+
+    // 先查找
+    QTextCursor cursor = textEdit->textCursor();
+    cursor = textEdit->document()->find(findText, cursor);
+
+    if (!cursor.isNull()) {
+        // 找到则替换选中的文本
+        cursor.insertText(replaceText);
+    } else {
+        statusBar()->showMessage("未找到: " + findText, 3000);
+    }
+}
+
+void MainWindow::replaceAll(const QString &findText, const QString &replaceText)
+{
+    if (findText.isEmpty())
+        return;
+
+    // 从文档开头开始
+    QTextCursor cursor(textEdit->document());
+    cursor.movePosition(QTextCursor::Start);
+
+    int count = 0;
+    // 循环查找并替换
+    while (true) {
+        QTextCursor result = textEdit->document()->find(findText, cursor);
+        if (result.isNull())
+            break;
+
+        result.insertText(replaceText);
+        count++;
+
+        // 更新光标位置，避免死循环
+        cursor = result;
+    }
+
+    statusBar()->showMessage(QString("已替换 %1 处").arg(count), 3000);
 }

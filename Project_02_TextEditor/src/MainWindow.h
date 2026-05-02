@@ -6,6 +6,7 @@
 class QTextEdit;
 // class QString;
 class QLabel;
+class FindReplaceDialog;
 
 class MainWindow : public QMainWindow
 {
@@ -26,17 +27,26 @@ private slots:
     bool openFile();
     bool saveFile();
 
+// Status Bar
 private:
     void createStatusBar();
     void updateStatusBar();
 
+// Find & Replace
+private:
+    void showFindDialog();
 
+private slots:
+    void findNext(const QString &text);
+    void replace(const QString &findText, const QString &replaceText);
+    void replaceAll(const QString &findText, const QString &replaceText);
+
+// Variants
 private:
     QTextEdit *textEdit;
-
     QLabel *cursorLabel;
-
     QString currentFile;
+    FindReplaceDialog *findDialog;
 };
 
 #endif

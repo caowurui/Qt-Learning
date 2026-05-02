@@ -10,7 +10,7 @@
   },
   {
     "label": "Reconfigure + Build",
-    "command": "cd build_root && cmake .. -G Ninja && cmake --build .",
+    "command": "cd build_root ; cmake .. -G Ninja ; cmake --build .",
     "cwd": "$ZED_WORKTREE_ROOT",
     "reveal": "always",
     "hide": "never",
@@ -41,13 +41,5 @@
     "reveal": "always",
     "hide": "never",
     "tags": ["run", "project02"],
-  },
-  {
-    "label": "Run Project 02 Tests",
-    "command": "./build_root/Project_02_TextEditor/Project_02_TextEditor_tests.exe",
-    "cwd": "$ZED_WORKTREE_ROOT",
-    "reveal": "always",
-    "hide": "never",
-    "tags": ["test", "project02"],
   },
 ]

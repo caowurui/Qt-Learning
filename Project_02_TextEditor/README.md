@@ -40,7 +40,7 @@
   - 监听 `QTextEdit` 的光标位置变化信号 `cursorPositionChanged()`
   - 涉及类：`QStatusBar`, `QLabel`, `QTextEdit`
 
-- [ ] **6. 添加查找/替换对话框**
+- [x] **6. 添加查找/替换对话框**
   - 编辑菜单中添加"查找(Ctrl+F)"和"替换(Ctrl+H)"
   - 弹出对话框，输入查找内容和替换内容
   - 使用 `QTextDocument::find()` 进行查找
