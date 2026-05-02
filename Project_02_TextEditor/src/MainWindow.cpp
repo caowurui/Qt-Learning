@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "FindReplaceDialog.h"
+#include "SyntaxHighlighter.h"
 #include <QTextEdit>
 #include <QMenu>
 #include <QMenuBar>
@@ -20,6 +21,8 @@ MainWindow::MainWindow(QWidget *parent)
     createMenuBar();
 
     createStatusBar();
+
+    highlighter = new SyntaxHighlighter(textEdit->document());
 }
 
 MainWindow::~MainWindow()

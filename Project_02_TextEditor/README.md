@@ -48,7 +48,7 @@
 
 ### 阶段三：语法高亮
 
-- [ ] **7. 实现基础语法高亮**
+- [x] **7. 实现基础语法高亮**
   - 创建 `SyntaxHighlighter` 类，继承 `QSyntaxHighlighter`
   - 为 C++ 关键字（`int`, `return`, `if`, `class` 等）设置颜色
   - 为字符串字面量和注释设置颜色

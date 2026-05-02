@@ -4,9 +4,9 @@
 #include <QMainWindow>
 
 class QTextEdit;
-// class QString;
 class QLabel;
 class FindReplaceDialog;
+class SyntaxHighlighter;
 
 class MainWindow : public QMainWindow
 {
@@ -47,6 +47,7 @@ private:
     QLabel *cursorLabel;
     QString currentFile;
     FindReplaceDialog *findDialog;
+    SyntaxHighlighter *highlighter;
 };
 
 #endif
