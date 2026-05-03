@@ -10,24 +10,24 @@ FindReplaceDialog::FindReplaceDialog(QWidget *parent)
     setWindowTitle("查找和替换");
     setFixedSize(400, 180);
 
-    // 布局
+    // 主布局（垂直排列三行）
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
 
-    // 查找行
+    // 第一行：查找输入框
     QHBoxLayout *findLayout = new QHBoxLayout();
     findLayout->addWidget(new QLabel("查找(&N):"));
     findInput = new QLineEdit();
     findLayout->addWidget(findInput);
     mainLayout->addLayout(findLayout);
 
-    // 替换行
+    // 第二行：替换输入框
     QHBoxLayout *replaceLayout = new QHBoxLayout();
     replaceLayout->addWidget(new QLabel("替换(&R):"));
     replaceInput = new QLineEdit();
     replaceLayout->addWidget(replaceInput);
     mainLayout->addLayout(replaceLayout);
 
-    // 按钮行
+    // 第三行：操作按钮
     QHBoxLayout *buttonLayout = new QHBoxLayout();
     findBtn = new QPushButton("查找下一个");
     replaceBtn = new QPushButton("替换");
@@ -37,7 +37,7 @@ FindReplaceDialog::FindReplaceDialog(QWidget *parent)
     buttonLayout->addWidget(replaceAllBtn);
     mainLayout->addLayout(buttonLayout);
 
-    // 信号连接（连接按钮到自身的信号，实际逻辑由 MainWindow 处理）
+    // 点击按钮时发射对应的信号，由 MainWindow 处理具体逻辑
     connect(findBtn, &QPushButton::clicked, this, [this]() {
         emit findNext(findInput->text());
     });

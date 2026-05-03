@@ -6,6 +6,12 @@
 class QLineEdit;
 class QPushButton;
 
+/**
+ * @brief 查找/替换对话框
+ *
+ * 提供查找和替换的 UI 界面，
+ * 通过信号将用户操作传递给 MainWindow 处理。
+ */
 class FindReplaceDialog : public QDialog
 {
     Q_OBJECT

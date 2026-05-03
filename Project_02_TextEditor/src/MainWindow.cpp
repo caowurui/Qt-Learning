@@ -12,6 +12,11 @@
 #include <QHBoxLayout>
 #include <QScrollBar>
 
+/**
+ * @brief 构造函数
+ *
+ * 初始化标签页、创建第一个编辑器、设置菜单栏和状态栏。
+ */
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -44,6 +49,14 @@ MainWindow::~MainWindow()
 {
 }
 
+/**
+ * @brief 创建一个新的编辑器页面
+ * @param editor [out] 返回新创建的 QTextEdit 指针
+ * @return 包含行号区域和编辑器的容器 QWidget
+ *
+ * 每个标签页由「行号组件 + 编辑器」组成，
+ * 同时连接行号更新所需的信号。
+ */
 QWidget* MainWindow::createEditorPage(QTextEdit *&editor)
 {
     editor = new QTextEdit();
@@ -66,6 +79,10 @@ QWidget* MainWindow::createEditorPage(QTextEdit *&editor)
     return page;
 }
 
+/**
+ * @brief 获取当前标签页的编辑器
+ * @return 当前编辑器指针，如果没有标签页返回 nullptr
+ */
 QTextEdit* MainWindow::currentEditor()
 {
     QWidget *page = tabs->currentWidget();
@@ -73,12 +90,22 @@ QTextEdit* MainWindow::currentEditor()
     return editors.value(page, nullptr);
 }
 
+/**
+ * @brief 为编辑器连接信号
+ * @param editor 要连接的编辑器
+ *
+ * 编辑器的 cursorPositionChanged 信号驱动状态栏更新。
+ */
 void MainWindow::connectEditorSignals(QTextEdit *editor)
 {
     connect(editor, &QTextEdit::cursorPositionChanged,
             this, &MainWindow::updateStatusBar);
 }
 
+/**
+ * @brief 关闭标签页
+ * @param index 要关闭的标签页索引
+ */
 void MainWindow::onTabCloseRequested(int index)
 {
     QWidget *page = tabs->widget(index);
@@ -90,6 +117,9 @@ void MainWindow::onTabCloseRequested(int index)
     delete page;
 }
 
+/**
+ * @brief 切换标签页时更新状态栏
+ */
 void MainWindow::onCurrentTabChanged(int index)
 {
     Q_UNUSED(index);
@@ -102,6 +132,9 @@ void MainWindow::createMenuBar()
     createEditMenu();
 }
 
+/**
+ * @brief 创建文件菜单
+ */
 void MainWindow::createFileMenu()
 {
     QMenu *fileMenu = menuBar()->addMenu("文件(&F)");
@@ -127,6 +160,9 @@ void MainWindow::createFileMenu()
     connect(exitAction, &QAction::triggered, qApp, &QApplication::quit);
 }
 
+/**
+ * @brief 创建编辑菜单
+ */
 void MainWindow::createEditMenu()
 {
     QMenu *editMenu = menuBar()->addMenu("编辑(&E)");
@@ -174,6 +210,9 @@ void MainWindow::createEditMenu()
     connect(replaceAction, &QAction::triggered, this, &MainWindow::showFindDialog);
 }
 
+/**
+ * @brief 新建空白标签页
+ */
 void MainWindow::newFile()
 {
     QTextEdit *editor;
@@ -188,6 +227,11 @@ void MainWindow::newFile()
     new SyntaxHighlighter(editor->document());
 }
 
+/**
+ * @brief 打开文件
+ *
+ * 如果当前标签为空则复用，否则新建标签页。
+ */
 bool MainWindow::openFile()
 {
     QString fileName = QFileDialog::getOpenFileName(this, "打开文件");
@@ -225,6 +269,11 @@ bool MainWindow::openFile()
     return true;
 }
 
+/**
+ * @brief 保存文件
+ *
+ * 如果文件尚未命名则弹出另存为对话框。
+ */
 bool MainWindow::saveFile()
 {
     QTextEdit *editor = currentEditor();
@@ -256,12 +305,18 @@ bool MainWindow::saveFile()
     return true;
 }
 
+/**
+ * @brief 创建状态栏（显示光标位置）
+ */
 void MainWindow::createStatusBar()
 {
     cursorLabel = new QLabel("行数: 1, 列数: 1");
     statusBar()->addPermanentWidget(cursorLabel);
 }
 
+/**
+ * @brief 更新状态栏的行号列号
+ */
 void MainWindow::updateStatusBar()
 {
     QTextEdit *editor = currentEditor();
@@ -273,6 +328,11 @@ void MainWindow::updateStatusBar()
     cursorLabel->setText(QString("行数: %1, 列数: %2").arg(line).arg(col));
 }
 
+/**
+ * @brief 显示查找/替换对话框
+ *
+ * 首次调用时创建对话框并连接信号，后续直接显示。
+ */
 void MainWindow::showFindDialog()
 {
     if (!findDialog) {
@@ -289,6 +349,12 @@ void MainWindow::showFindDialog()
     findDialog->activateWindow();
 }
 
+/**
+ * @brief 查找下一个匹配
+ * @param text 要查找的文本
+ *
+ * 从当前光标向后查找，如果没找到则从文档开头重头查一遍。
+ */
 void MainWindow::findNext(const QString &text)
 {
     QTextEdit *editor = currentEditor();
@@ -310,6 +376,9 @@ void MainWindow::findNext(const QString &text)
     }
 }
 
+/**
+ * @brief 替换当前匹配
+ */
 void MainWindow::replace(const QString &findText, const QString &replaceText)
 {
     QTextEdit *editor = currentEditor();
@@ -327,6 +396,9 @@ void MainWindow::replace(const QString &findText, const QString &replaceText)
     }
 }
 
+/**
+ * @brief 替换所有匹配
+ */
 void MainWindow::replaceAll(const QString &findText, const QString &replaceText)
 {
     QTextEdit *editor = currentEditor();
