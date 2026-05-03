@@ -15,36 +15,85 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    QWidget *container = new QWidget();
-    QHBoxLayout *layout = new QHBoxLayout(container);
-    textEdit = new QTextEdit();
-    lineNumberWidget = new LineNumberWidget(textEdit);
-    lineNumberWidget->setFixedWidth(35);
-    layout->setSpacing(0);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->addWidget(lineNumberWidget);
-    layout->addWidget(textEdit);
-    setCentralWidget(container);
+    tabs = new QTabWidget();
+    tabs->setTabsClosable(true);
+    connect(tabs, &QTabWidget::tabCloseRequested,
+        this, &MainWindow::onTabCloseRequested);
+    connect(tabs, &QTabWidget::currentChanged,
+        this, &MainWindow::onCurrentTabChanged);
+    setCentralWidget(tabs);
 
     findDialog = nullptr;
 
+    // 创建第一个标签页
+    QTextEdit *firstEditor;
+    QWidget *firstPage = createEditorPage(firstEditor);
+    tabs->addTab(firstPage, "未命名");
+
+    editors[firstPage] = firstEditor;
+    filePaths[firstPage] = QString();
+
+    new SyntaxHighlighter(firstEditor->document());
+    connectEditorSignals(firstEditor);
+
     createMenuBar();
-
     createStatusBar();
-
-    highlighter = new SyntaxHighlighter(textEdit->document());
-
-    // 编辑器滚动时刷新行号
-    connect(textEdit->verticalScrollBar(), &QScrollBar::valueChanged,
-            lineNumberWidget, [this]() { lineNumberWidget->update(); });
-
-    // 文本内容变化时刷新行号
-    connect(textEdit, &QTextEdit::textChanged,
-            lineNumberWidget, [this]() { lineNumberWidget->update(); });
 }
 
 MainWindow::~MainWindow()
 {
+}
+
+QWidget* MainWindow::createEditorPage(QTextEdit *&editor)
+{
+    editor = new QTextEdit();
+
+    LineNumberWidget *lineNumber = new LineNumberWidget(editor);
+    lineNumber->setFixedWidth(35);
+
+    QWidget *page = new QWidget();
+    QHBoxLayout *layout = new QHBoxLayout(page);
+    layout->setSpacing(0);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(lineNumber);
+    layout->addWidget(editor);
+
+    connect(editor->verticalScrollBar(), &QScrollBar::valueChanged,
+            lineNumber, [lineNumber]() { lineNumber->update(); });
+    connect(editor, &QTextEdit::textChanged,
+            lineNumber, [lineNumber]() { lineNumber->update(); });
+
+    return page;
+}
+
+QTextEdit* MainWindow::currentEditor()
+{
+    QWidget *page = tabs->currentWidget();
+    if (!page) return nullptr;
+    return editors.value(page, nullptr);
+}
+
+void MainWindow::connectEditorSignals(QTextEdit *editor)
+{
+    connect(editor, &QTextEdit::cursorPositionChanged,
+            this, &MainWindow::updateStatusBar);
+}
+
+void MainWindow::onTabCloseRequested(int index)
+{
+    QWidget *page = tabs->widget(index);
+    tabs->removeTab(index);
+
+    editors.remove(page);
+    filePaths.remove(page);
+
+    delete page;
+}
+
+void MainWindow::onCurrentTabChanged(int index)
+{
+    Q_UNUSED(index);
+    updateStatusBar();
 }
 
 void MainWindow::createMenuBar()
@@ -57,29 +106,25 @@ void MainWindow::createFileMenu()
 {
     QMenu *fileMenu = menuBar()->addMenu("文件(&F)");
 
-    // 新建
     QAction *newAction = fileMenu->addAction("新建(&N)");
     newAction->setShortcut(QKeySequence("Ctrl+N"));
-    connect(newAction,&QAction::triggered,this,&MainWindow::newFile);
+    connect(newAction, &QAction::triggered, this, &MainWindow::newFile);
 
-    // 打开
     QAction *openAction = fileMenu->addAction("打开(&O)...");
     openAction->setShortcut(QKeySequence("Ctrl+O"));
-    connect(openAction,&QAction::triggered,this,&MainWindow::openFile);
+    connect(openAction, &QAction::triggered, this, &MainWindow::openFile);
 
     fileMenu->addSeparator();
 
-    // 保存
     QAction *saveAction = fileMenu->addAction("保存(&S)");
     saveAction->setShortcut(QKeySequence("Ctrl+S"));
-    connect(saveAction,&QAction::triggered,this,&MainWindow::saveFile);
+    connect(saveAction, &QAction::triggered, this, &MainWindow::saveFile);
 
     fileMenu->addSeparator();
 
-    // 退出
     QAction *exitAction = fileMenu->addAction("退出(&Q)");
     exitAction->setShortcut(QKeySequence("Ctrl+Q"));
-    connect(exitAction,&QAction::triggered,qApp,&QApplication::quit);
+    connect(exitAction, &QAction::triggered, qApp, &QApplication::quit);
 }
 
 void MainWindow::createEditMenu()
@@ -88,25 +133,35 @@ void MainWindow::createEditMenu()
 
     QAction *undoAction = editMenu->addAction("撤销(&U)");
     undoAction->setShortcut(QKeySequence("Ctrl+Z"));
-    connect(undoAction, &QAction::triggered, textEdit, &QTextEdit::undo);
+    connect(undoAction, &QAction::triggered, this, [this]() {
+        if (auto *e = currentEditor()) e->undo();
+    });
 
     QAction *redoAction = editMenu->addAction("重做(&R)");
     redoAction->setShortcut(QKeySequence("Ctrl+Y"));
-    connect(redoAction, &QAction::triggered, textEdit, &QTextEdit::redo);
+    connect(redoAction, &QAction::triggered, this, [this]() {
+        if (auto *e = currentEditor()) e->redo();
+    });
 
     editMenu->addSeparator();
 
     QAction *cutAction = editMenu->addAction("剪切(&T)");
     cutAction->setShortcut(QKeySequence("Ctrl+X"));
-    connect(cutAction, &QAction::triggered, textEdit, &QTextEdit::cut);
+    connect(cutAction, &QAction::triggered, this, [this]() {
+        if (auto *e = currentEditor()) e->cut();
+    });
 
     QAction *copyAction = editMenu->addAction("复制(&C)");
     copyAction->setShortcut(QKeySequence("Ctrl+C"));
-    connect(copyAction, &QAction::triggered, textEdit, &QTextEdit::copy);
+    connect(copyAction, &QAction::triggered, this, [this]() {
+        if (auto *e = currentEditor()) e->copy();
+    });
 
     QAction *pasteAction = editMenu->addAction("粘贴(&V)");
     pasteAction->setShortcut(QKeySequence("Ctrl+V"));
-    connect(pasteAction, &QAction::triggered, textEdit, &QTextEdit::paste);
+    connect(pasteAction, &QAction::triggered, this, [this]() {
+        if (auto *e = currentEditor()) e->paste();
+    });
 
     editMenu->addSeparator();
 
@@ -121,53 +176,83 @@ void MainWindow::createEditMenu()
 
 void MainWindow::newFile()
 {
-    textEdit->clear();
-    currentFile.clear();
-    setWindowTitle("文本编辑器 - 未命名");
+    QTextEdit *editor;
+    QWidget *page = createEditorPage(editor);
+
+    tabs->addTab(page, "未命名");
+    tabs->setCurrentWidget(page);
+
+    editors[page] = editor;
+    filePaths[page] = QString();
+    connectEditorSignals(editor);
+    new SyntaxHighlighter(editor->document());
 }
 
 bool MainWindow::openFile()
 {
-    QString fileName = QFileDialog::getOpenFileName(this,"打开文件");
+    QString fileName = QFileDialog::getOpenFileName(this, "打开文件");
     if (fileName.isEmpty())
         return false;
 
     QFile file(fileName);
-    if(!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QMessageBox::warning(this,"错误","无法打开文件:"+file.errorString());
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QMessageBox::warning(this, "错误", "无法打开文件:" + file.errorString());
         return false;
     }
 
     QTextStream in(&file);
-    textEdit->setText(in.readAll());
+    QString content = in.readAll();
     file.close();
 
-    currentFile = fileName;
-    setWindowTitle(QString("文本编辑器 - ")+fileName);
+    // 在当前标签页或新建标签页打开
+    QTextEdit *editor = currentEditor();
+
+    // 如果当前标签是空白的（从未编辑过），就复用；否则新建
+    if (editor && editor->toPlainText().isEmpty() && filePaths[tabs->currentWidget()].isEmpty()) {
+        // 复用当前标签
+    } else {
+        newFile();
+        editor = currentEditor();
+    }
+
+    editor->setText(content);
+    QWidget *page = tabs->currentWidget();
+    filePaths[page] = fileName;
+
+    QString shortName = fileName.section('/', -1).section('\\', -1);
+    tabs->setTabText(tabs->currentIndex(), shortName);
 
     return true;
 }
 
 bool MainWindow::saveFile()
 {
-    if (currentFile.isEmpty()) {
-        QString fileName = QFileDialog::getSaveFileName(this, "保存文件");
-        if (fileName.isEmpty())
+    QTextEdit *editor = currentEditor();
+    if (!editor) return false;
+
+    QWidget *page = tabs->currentWidget();
+    QString path = filePaths[page];
+
+    if (path.isEmpty()) {
+        path = QFileDialog::getSaveFileName(this, "保存文件");
+        if (path.isEmpty())
             return false;
-        currentFile = fileName;
+        filePaths[page] = path;
     }
 
-    QFile file(currentFile);
+    QFile file(path);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         QMessageBox::warning(this, "错误", "无法保存文件：" + file.errorString());
         return false;
     }
 
     QTextStream out(&file);
-    out << textEdit->toPlainText();
+    out << editor->toPlainText();
     file.close();
 
-    setWindowTitle(currentFile);
+    QString shortName = path.section('/', -1).section('\\', -1);
+    tabs->setTabText(tabs->currentIndex(), shortName);
+
     return true;
 }
 
@@ -175,13 +260,14 @@ void MainWindow::createStatusBar()
 {
     cursorLabel = new QLabel("行数: 1, 列数: 1");
     statusBar()->addPermanentWidget(cursorLabel);
-    connect(textEdit,&QTextEdit::cursorPositionChanged,
-        this,&MainWindow::updateStatusBar);
 }
 
 void MainWindow::updateStatusBar()
 {
-    QTextCursor cursor = textEdit->textCursor();
+    QTextEdit *editor = currentEditor();
+    if (!editor) return;
+
+    QTextCursor cursor = editor->textCursor();
     int line = cursor.blockNumber() + 1;
     int col = cursor.columnNumber() + 1;
     cursorLabel->setText(QString("行数: %1, 列数: %2").arg(line).arg(col));
@@ -205,19 +291,19 @@ void MainWindow::showFindDialog()
 
 void MainWindow::findNext(const QString &text)
 {
-    if (text.isEmpty())
-        return;
+    QTextEdit *editor = currentEditor();
+    if (!editor || text.isEmpty()) return;
 
     // 从当前光标向后查找
-    bool found = textEdit->find(text);
+    bool found = editor->find(text);
 
     if (!found) {
         // 没找到，从文档开头重头查一遍
-        QTextCursor cursor = textEdit->textCursor();
+        QTextCursor cursor = editor->textCursor();
         cursor.movePosition(QTextCursor::Start);
-        textEdit->setTextCursor(cursor);
+        editor->setTextCursor(cursor);
 
-        found = textEdit->find(text);
+        found = editor->find(text);
         if (!found) {
             statusBar()->showMessage("未找到: " + text, 3000);
         }
@@ -226,12 +312,12 @@ void MainWindow::findNext(const QString &text)
 
 void MainWindow::replace(const QString &findText, const QString &replaceText)
 {
-    if (findText.isEmpty())
-        return;
+    QTextEdit *editor = currentEditor();
+    if (!editor || findText.isEmpty()) return;
 
     // 先查找
-    QTextCursor cursor = textEdit->textCursor();
-    cursor = textEdit->document()->find(findText, cursor);
+    QTextCursor cursor = editor->textCursor();
+    cursor = editor->document()->find(findText, cursor);
 
     if (!cursor.isNull()) {
         // 找到则替换选中的文本
@@ -243,17 +329,17 @@ void MainWindow::replace(const QString &findText, const QString &replaceText)
 
 void MainWindow::replaceAll(const QString &findText, const QString &replaceText)
 {
-    if (findText.isEmpty())
-        return;
+    QTextEdit *editor = currentEditor();
+    if (!editor || findText.isEmpty()) return;
 
     // 从文档开头开始
-    QTextCursor cursor(textEdit->document());
+    QTextCursor cursor(editor->document());
     cursor.movePosition(QTextCursor::Start);
 
     int count = 0;
     // 循环查找并替换
     while (true) {
-        QTextCursor result = textEdit->document()->find(findText, cursor);
+        QTextCursor result = editor->document()->find(findText, cursor);
         if (result.isNull())
             break;
 
