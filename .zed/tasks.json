@@ -42,4 +42,21 @@
     "hide": "never",
     "tags": ["run", "project02"],
   },
+  // ==================== Project 03 ====================
+  {
+    "label": "Run Project 03 Client",
+    "command": "./build_root/Project_03_ChatClient/Project_03_ChatClient.exe",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always",
+    "hide": "never",
+    "tags": ["run", "project03"],
+  },
+  {
+    "label": "Run Project 03 Server",
+    "command": "./build_root/Project_03_ChatServer/Project_03_ChatServer.exe",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always",
+    "hide": "never",
+    "tags": ["run", "project03"],
+  },
 ]
