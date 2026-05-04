@@ -28,12 +28,21 @@ bool ChatServer::startServer(quint16 port)
 
 void ChatServer::onNewConnection()
 {
-    // TODO: 接受新连接，保存 socket，连接信号
-}
+    QTcpSocket *client = server->nextPendingConnection();
 
-void ChatServer::onClientDisconnected()
-{
-    // TODO: 从列表中移除断开连接的客户端
+    clients.append(client);
+
+    connect(client, &QTcpSocket::readyRead,
+        this, &ChatServer::onReadyRead);
+    connect(client, &QTcpSocket::disconnected,
+        this, [this, client](){
+            clients.removeAll(client);
+            client->deleteLater();
+            qDebug() << "客户端断开连接";
+        });
+
+    qDebug() << "新客户端连接:" << client->peerAddress().toString()
+                << "端口:" << client->peerPort();
 }
 
 void ChatServer::onReadyRead()

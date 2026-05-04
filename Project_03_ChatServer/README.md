@@ -16,7 +16,7 @@
   - 控制台输出 `Server started on port 8888`
   - 涉及类：`QTcpServer`, `QHostAddress`
 
-- [ ] **2. 接受客户端连接**
+- [x] **2. 接受客户端连接**
   - 连接 `newConnection` 信号
   - 获取 `nextPendingConnection()`，存入客户端列表
   - 为新客户端连接 `readyRead` 和 `disconnected` 信号

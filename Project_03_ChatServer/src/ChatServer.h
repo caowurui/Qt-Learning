@@ -19,7 +19,6 @@ public:
 
 private slots:
     void onNewConnection();
-    void onClientDisconnected();
     void onReadyRead();
 
 private:
