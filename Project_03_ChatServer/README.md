@@ -23,7 +23,7 @@
   - 客户端连接时，控制台输出 `Client connected: 127.0.0.1:xxxxx`
   - 涉及类：`QTcpSocket`, `QList<QTcpSocket*>`
 
-- [ ] **3. 消息广播**
+- [x] **3. 消息广播**
   - 收到某客户端消息后，转发给**其他所有**客户端
   - 控制台输出收到的消息内容
   - 涉及方法：`QTcpSocket::readAll()`, `write()`

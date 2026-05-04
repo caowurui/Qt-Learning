@@ -35,11 +35,7 @@ void ChatServer::onNewConnection()
     connect(client, &QTcpSocket::readyRead,
         this, &ChatServer::onReadyRead);
     connect(client, &QTcpSocket::disconnected,
-        this, [this, client](){
-            clients.removeAll(client);
-            client->deleteLater();
-            qDebug() << "客户端断开连接";
-        });
+        this, &ChatServer::onDisconnected);
 
     qDebug() << "新客户端连接:" << client->peerAddress().toString()
                 << "端口:" << client->peerPort();
@@ -47,5 +43,27 @@ void ChatServer::onNewConnection()
 
 void ChatServer::onReadyRead()
 {
-    // TODO: 读取客户端消息，广播给其他客户端
+    QTcpSocket *client = qobject_cast<QTcpSocket*>(sender());
+    if(!client) return;
+
+    QByteArray data = client->readAll();
+
+    qDebug() << "收到消息：" << data;
+
+    for(QTcpSocket *c: clients)
+    {
+        if(c!=client)
+        {
+            c->write(data);
+        }
+    }
+}
+
+void ChatServer::onDisconnected()
+{
+    QTcpSocket *client = qobject_cast<QTcpSocket*>(sender());
+    if(client==nullptr) return;
+    clients.removeAll(client);
+    client->deleteLater();
+    qDebug() << "客户端断开连接";
 }
