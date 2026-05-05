@@ -13,10 +13,12 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Network)
 set(SOURCES
     src/main.cpp
     src/MainWindow.cpp
+    src/ClientConnection.cpp
 )
 
 set(HEADERS
     src/MainWindow.h
+    src/ClientConnection.h
 )
 
 

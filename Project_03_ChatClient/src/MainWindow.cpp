@@ -1,4 +1,5 @@
 #include "MainWindow.h"
+#include "ClientConnection.h"
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -14,10 +15,56 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
     setupUI();
-}
 
-MainWindow::~MainWindow()
-{
+    connection = new ClientConnection(this);
+
+    connect(connectBtn, &QPushButton::clicked,
+        this, &MainWindow::createConnection);
+    connect(connection, &ClientConnection::connected,
+        this, [this]() {
+        qDebug() << "连接成功";
+        statusLabel->setText("● 已连接");
+        statusBar()->showMessage("已连接到服务器");
+        connectBtn->setEnabled(false);
+        disconnectBtn->setEnabled(true);
+    });
+    connect(connection, &ClientConnection::disconnected,
+        this, [this]() {
+        qDebug() << "断开连接";
+        statusLabel->setText("● 未连接");
+        statusBar()->showMessage("已断开连接");
+        connectBtn->setEnabled(true);
+        disconnectBtn->setEnabled(false);
+    });
+    connect(connection, &ClientConnection::messageReceived,
+        this, [this](QString text) {
+        msgDisplay->append(text);
+    });
+
+    // 错误处理
+    connect(connection, &ClientConnection::errorOccurred,
+        this, [this](QString error) {
+        statusBar()->showMessage(error, 5000);
+        qDebug() << "错误:" << error;
+    });
+
+    // 断开连接
+    connect(disconnectBtn, &QPushButton::clicked,
+        connection, &ClientConnection::disconnectFromServer);
+
+    // 发送消息
+    connect(sendBtn, &QPushButton::clicked,
+        this, [this]() {
+        QString text = msgInput->text();
+        if (!text.isEmpty()) {
+            connection->sendMessage(text);
+            msgInput->clear();
+        }
+    });
+
+    // Enter 键发送
+    connect(msgInput, &QLineEdit::returnPressed,
+        sendBtn, &QPushButton::click);
 }
 
 void MainWindow::setupUI()
@@ -97,4 +144,16 @@ void MainWindow::setupUI()
 
     // ====== 状态栏 ======
     statusBar()->showMessage("未连接到服务器");
+}
+
+void MainWindow::createConnection()
+{
+    bool ok;
+    quint16 port = portInput->text().toUInt(&ok);
+    if (!ok) {
+        statusBar()->showMessage("端口号格式错误", 3000);
+        return;
+    }
+    QString host = hostInput->text();
+    connection->connectToServer(host, port);
 }

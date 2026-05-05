@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "ClientConnection.h"
 
 class QLineEdit;
 class QPushButton;
@@ -16,7 +17,6 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
 
 private:
     void setupUI();
@@ -36,6 +36,12 @@ private:
     // 底部输入
     QLineEdit *msgInput;
     QPushButton *sendBtn;
+
+public:
+    void createConnection();
+
+private:
+    ClientConnection *connection;
 };
 
 #endif

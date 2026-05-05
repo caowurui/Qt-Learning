@@ -22,13 +22,13 @@
   - 顶部是连接控制区域（服务器地址、端口、连接/断开按钮）
   - 涉及类：`QMainWindow`, `QWidget`, `QLineEdit`, `QPushButton`
 
-- [ ] **2. 实现 TCP 连接**
+- [x] **2. 实现 TCP 连接**
   - 创建 `ClientConnection` 类，封装 `QTcpSocket`
   - 实现 `connectToServer(host, port)` 方法
   - 实现 `disconnectFromServer()` 方法
   - 监听 `connected`、`disconnected`、`errorOccurred` 信号
   - 连接成功后，禁用"连接"按钮，启用"断开"按钮
-  - 涉及类：`QTcpSocket`, `QHostAddress`
+  - 涉及类：`QTcpSocket`
 
 - [ ] **3. 收发文本消息**
   - 实现 `sendMessage(QString text)` 方法，通过 socket 写入数据
