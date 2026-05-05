@@ -10,11 +10,26 @@
 #include <QListWidget>
 #include <QSplitter>
 #include <QStatusBar>
+#include <QInputDialog>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
     setupUI();
+
+    bool ok;
+    do {
+        nickname = QInputDialog::getText(this, "昵称",
+                "请输入你的昵称:\n(不能包含 | 符号)",
+                QLineEdit::Normal, "用户", &ok);
+        if (!ok) {
+            nickname = "用户";
+            break;
+        }
+        nickname = nickname.trimmed();
+    } while (nickname.isEmpty() || nickname.contains('|') || nickname == "未知");
+
+    updateNicknameDisplay();
 
     connection = new ClientConnection(this);
 
@@ -27,6 +42,11 @@ MainWindow::MainWindow(QWidget *parent)
         statusBar()->showMessage("已连接到服务器");
         connectBtn->setEnabled(false);
         disconnectBtn->setEnabled(true);
+        changeNickBtn->setEnabled(false);
+        msgInput->setEnabled(true);
+        sendBtn->setEnabled(true);
+        msgInput->setFocus();
+        connection->sendMessage("NICK|" + nickname);
     });
     connect(connection, &ClientConnection::disconnected,
         this, [this]() {
@@ -35,10 +55,31 @@ MainWindow::MainWindow(QWidget *parent)
         statusBar()->showMessage("已断开连接");
         connectBtn->setEnabled(true);
         disconnectBtn->setEnabled(false);
+        changeNickBtn->setEnabled(true);
+        msgInput->setEnabled(false);
+        sendBtn->setEnabled(false);
     });
     connect(connection, &ClientConnection::messageReceived,
-        this, [this](QString text) {
-        msgDisplay->append(text);
+        this, [this](QString raw) {
+        // 解析协议
+        QStringList parts = raw.split('|');
+        if (parts.isEmpty()) return;
+
+        if (parts[0] == "PUBLIC" && parts.size() >= 3) {
+            QString sender = parts[1];
+            QString content = parts.mid(2).join('|');
+            msgDisplay->append(QString("[%1]: %2").arg(sender, content));
+        } else if (parts[0] == "SYSTEM" && parts.size() >= 2) {
+            QString sysMsg = parts[1];
+            if (sysMsg.contains("已被使用")) {
+                msgDisplay->append("【" + sysMsg + "】");
+                connection->disconnectFromServer();
+            } else {
+                msgDisplay->append("【" + sysMsg + "】");
+            }
+        } else {
+            msgDisplay->append(raw);
+        }
     });
 
     // 错误处理
@@ -58,7 +99,7 @@ MainWindow::MainWindow(QWidget *parent)
         QString text = msgInput->text();
         if (!text.isEmpty()) {
             connection->sendMessage(text);
-            msgDisplay->append(text);
+            msgDisplay->append(QString("[%1]: %2").arg(nickname, text));
             msgInput->clear();
         }
     });
@@ -66,6 +107,19 @@ MainWindow::MainWindow(QWidget *parent)
     // Enter 键发送
     connect(msgInput, &QLineEdit::returnPressed,
         sendBtn, &QPushButton::click);
+
+    // 更改昵称
+    connect(changeNickBtn, &QPushButton::clicked, this, [this]() {
+        bool ok;
+        QString newNick = QInputDialog::getText(this, "更改昵称",
+                "请输入新昵称:\n(连接状态下修改后需重新连接)",
+                QLineEdit::Normal, nickname, &ok);
+        if (ok && !newNick.trimmed().isEmpty()
+            && !newNick.contains('|') && newNick.trimmed() != "未知") {
+            nickname = newNick.trimmed();
+            updateNicknameDisplay();
+        }
+    });
 }
 
 void MainWindow::setupUI()
@@ -100,6 +154,13 @@ void MainWindow::setupUI()
     statusLabel = new QLabel("● 未连接");
     topLayout->addWidget(statusLabel);
 
+    nickLabel = new QLabel();
+    updateNicknameDisplay();
+    topLayout->addWidget(nickLabel);
+
+    changeNickBtn = new QPushButton("更改昵称");
+    topLayout->addWidget(changeNickBtn);
+
     topLayout->addStretch();
     topBar->setFixedHeight(35);
     mainLayout->addWidget(topBar);
@@ -129,9 +190,11 @@ void MainWindow::setupUI()
 
     msgInput = new QLineEdit();
     msgInput->setPlaceholderText("输入消息...");
+    msgInput->setEnabled(false);
     inputLayout->addWidget(msgInput);
 
     sendBtn = new QPushButton("发送");
+    sendBtn->setEnabled(false);
     inputLayout->addWidget(sendBtn);
 
     rightLayout->addWidget(inputBar);
@@ -145,6 +208,11 @@ void MainWindow::setupUI()
 
     // ====== 状态栏 ======
     statusBar()->showMessage("未连接到服务器");
+}
+
+void MainWindow::updateNicknameDisplay()
+{
+    nickLabel->setText("昵称: " + nickname);
 }
 
 void MainWindow::createConnection()

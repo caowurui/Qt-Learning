@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QTcpServer>
 #include <QList>
+#include <QMap>
 
 class QTcpSocket;
 
@@ -25,6 +26,7 @@ private slots:
 private:
     QTcpServer *server;
     QList<QTcpSocket*> clients;
+    QMap<QTcpSocket*, QString> clientNames;
 };
 
 #endif

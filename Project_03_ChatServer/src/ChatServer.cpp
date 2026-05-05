@@ -47,15 +47,47 @@ void ChatServer::onReadyRead()
     if(!client) return;
 
     QByteArray data = client->readAll();
+    QString message = QString::fromUtf8(data).trimmed();
 
-    qDebug() << "收到消息：" << data;
+    qDebug() << "收到消息：" << message;
 
-    for(QTcpSocket *c: clients)
-    {
-        if(c!=client)
-        {
-            c->write(data);
+    // 如果是 NICK 协议，保存昵称
+    if (message.startsWith("NICK|")) {
+        QString nick = message.mid(5);
+
+        // 禁止使用保留昵称
+        if (nick == "未知") {
+            client->write(("SYSTEM|昵称 " + nick + " 不允许使用").toUtf8());
+            client->disconnectFromHost();
+            return;
         }
+
+        // 检查昵称是否已被使用
+        if (clientNames.values().contains(nick)) {
+            client->write(("SYSTEM|昵称 " + nick + " 已被使用，请重新连接").toUtf8());
+            client->disconnectFromHost();
+            qDebug() << "昵称重复:" << nick;
+            return;
+        }
+
+        clientNames[client] = nick;
+        qDebug() << "用户昵称:" << nick;
+
+        // 广播用户上线通知
+        QString notice = "SYSTEM|" + nick + " 加入了聊天室";
+        for (auto *c : clients) {
+            if (c != client)
+                c->write(notice.toUtf8());
+        }
+        return;
+    }
+
+    // 否则作为公共消息广播，带上发送者昵称
+    QString nick = clientNames.value(client, "匿名");
+    QString broadcast = "PUBLIC|" + nick + "|" + message;
+    for (auto *c : clients) {
+        if (c != client)
+            c->write(broadcast.toUtf8());
     }
 }
 
@@ -63,7 +95,20 @@ void ChatServer::onDisconnected()
 {
     QTcpSocket *client = qobject_cast<QTcpSocket*>(sender());
     if(client==nullptr) return;
+
+    // 检查是否注册过昵称
+    bool hadNick = clientNames.contains(client);
+    QString nick = clientNames.take(client);
+
     clients.removeAll(client);
     client->deleteLater();
-    qDebug() << "客户端断开连接";
+
+    if (hadNick) {
+        // 广播用户离线
+        QString notice = "SYSTEM|" + nick + " 离开了聊天室";
+        for (auto *c : clients) {
+            c->write(notice.toUtf8());
+        }
+        qDebug() << nick << "断开连接";
+    }
 }

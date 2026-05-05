@@ -20,6 +20,7 @@ public:
 
 private:
     void setupUI();
+    void updateNicknameDisplay();
 
     // 顶部连接栏
     QLineEdit *hostInput;
@@ -27,6 +28,8 @@ private:
     QPushButton *connectBtn;
     QPushButton *disconnectBtn;
     QLabel *statusLabel;
+    QLabel *nickLabel;
+    QPushButton *changeNickBtn;
 
     // 中部
     QSplitter *splitter;
@@ -42,6 +45,7 @@ public:
 
 private:
     ClientConnection *connection;
+    QString nickname;
 };
 
 #endif

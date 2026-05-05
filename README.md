@@ -11,7 +11,7 @@
 | 01 | 命令行参数解析器 | ✅ **已完成** | Qt 基础、命令行、信号槽 | [查看](Project_01_ArgumentParser/README.md) |
 | 02 | 文本编辑器 | ✅ **已完成** | Qt GUI、多标签、查找替换、语法高亮 | [查看](Project_02_TextEditor/README.md) |
 | 03s | 聊天服务器 | 🔄 **进行中** | QTcpServer、网络通信 | [查看](Project_03_ChatServer/README.md) |
-| 03c | 聊天客户端 | ⬜ 待开始 | QTcpSocket、多线程、UI | [查看](Project_03_ChatClient/README.md) |
+| 03c | 聊天客户端 | 🔄 **进行中** | QTcpSocket、多线程、UI | [查看](Project_03_ChatClient/README.md) |
 | 04 | 音乐播放器 | ⬜ 待开始 | 多媒体、播放器、可视化 | [查看](Project_04_MusicPlayer/README.md) |
 | 05 | 任务管理器 | ⬜ 待开始 | 数据库、MVC、拖放 | [查看](Project_05_TaskManager/README.md) |
 | 06 | 数据库客户端 | ⬜ 待开始 | 数据库深入、架构设计 | [查看](Project_06_DatabaseClient/README.md) |
@@ -94,7 +94,7 @@ Cpp_Learning/
 ├── Project_01_ArgumentParser/       # ✅ 已完成
 ├── Project_02_TextEditor/           # ✅ 已完成
 ├── Project_03_ChatServer/           # 🔄 进行中
-├── Project_03_ChatClient/           # ⬜ 待开始
+├── Project_03_ChatClient/           # 🔄 进行中
 ├── Project_04_MusicPlayer/          # ⬜ 待开始
 ├── Project_05_TaskManager/          # ⬜ 待开始
 ├── Project_06_DatabaseClient/       # ⬜ 待开始
