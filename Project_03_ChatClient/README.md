@@ -34,7 +34,7 @@
   - 实现 `sendMessage(QString text)` 方法，通过 socket 写入数据
   - 监听 socket 的 `readyRead` 信号，读取服务器发来的数据
   - 在状态栏显示连接状态（已连接/未连接）
-  - 涉及类：`QTcpSocket::write()`, `readyRead`, `QDataStream`
+  - 涉及类：`QTcpSocket::write()`, `readyRead`
 
 ### 阶段二：聊天 UI
 
