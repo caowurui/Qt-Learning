@@ -45,11 +45,11 @@
   - 自动滚动到底部，显示最新消息
   - 涉及类：`QTextEdit`（只读模式）, `QScrollBar`
 
-- [ ] **5. 发送消息界面**
+- [x] **5. 发送消息界面**
   - 聊天区域底部添加文本输入框和"发送"按钮
   - 按 `Enter` 键或点击"发送"按钮发送消息
   - 发送成功后清空输入框
-  - 涉及类：`QLineEdit`, `QPushButton`, `QShortcut`
+  - 涉及类：`QLineEdit`, `QPushButton`
 
 - [ ] **6. 用户列表显示**
   - 左侧添加 `QListWidget` 显示在线用户

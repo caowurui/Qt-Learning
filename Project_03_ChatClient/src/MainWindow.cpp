@@ -58,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent)
         QString text = msgInput->text();
         if (!text.isEmpty()) {
             connection->sendMessage(text);
+            msgDisplay->append(text);
             msgInput->clear();
         }
     });
