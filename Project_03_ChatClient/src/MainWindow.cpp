@@ -11,6 +11,7 @@
 #include <QSplitter>
 #include <QStatusBar>
 #include <QInputDialog>
+#include <QDateTime>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -65,17 +66,19 @@ MainWindow::MainWindow(QWidget *parent)
         QStringList parts = raw.split('|');
         if (parts.isEmpty()) return;
 
-        if (parts[0] == "PUBLIC" && parts.size() >= 3) {
+        if (parts[0] == "PUBLIC" && parts.size() >= 4) {
             QString sender = parts[1];
-            QString content = parts.mid(2).join('|');
-            msgDisplay->append(QString("[%1]: %2").arg(sender, content));
+            QString time = parts[2];
+            QString content = parts.mid(3).join('|');
+            msgDisplay->append(QString("[%1] [%2]: %3").arg(time, sender, content));
         } else if (parts[0] == "SYSTEM" && parts.size() >= 2) {
             QString sysMsg = parts[1];
+            QString time = QDateTime::currentDateTime().toString("HH:mm");
             if (sysMsg.contains("已被使用")) {
-                msgDisplay->append("【" + sysMsg + "】");
+                    msgDisplay->append("【" + time + "】" + sysMsg);
                 connection->disconnectFromServer();
             } else {
-                msgDisplay->append("【" + sysMsg + "】");
+                msgDisplay->append("【" + time + "】" + sysMsg);
             }
         } else {
             msgDisplay->append(raw);
@@ -99,7 +102,6 @@ MainWindow::MainWindow(QWidget *parent)
         QString text = msgInput->text();
         if (!text.isEmpty()) {
             connection->sendMessage(text);
-            msgDisplay->append(QString("[%1]: %2").arg(nickname, text));
             msgInput->clear();
         }
     });

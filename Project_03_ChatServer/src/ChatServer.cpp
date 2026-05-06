@@ -1,6 +1,7 @@
 #include "ChatServer.h"
 #include <QTcpSocket>
 #include <QDebug>
+#include <QDateTime>
 
 ChatServer::ChatServer(QObject *parent)
     : QObject(parent)
@@ -82,12 +83,12 @@ void ChatServer::onReadyRead()
         return;
     }
 
-    // 否则作为公共消息广播，带上发送者昵称
-    QString nick = clientNames.value(client, "匿名");
-    QString broadcast = "PUBLIC|" + nick + "|" + message;
+    // 否则作为公共消息广播，带上发送者昵称和时间戳
+    QString nick = clientNames.value(client, "未知");
+    QString time = QDateTime::currentDateTime().toString("HH:mm");
+    QString broadcast = "PUBLIC|" + nick + "|" + time + "|" + message;
     for (auto *c : clients) {
-        if (c != client)
-            c->write(broadcast.toUtf8());
+        c->write(broadcast.toUtf8());
     }
 }
 
