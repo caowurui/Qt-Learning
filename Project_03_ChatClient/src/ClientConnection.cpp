@@ -17,7 +17,11 @@ ClientConnection::ClientConnection(QObject *parent)
     connect(socket, &QTcpSocket::readyRead,
         this, [this](){
         QByteArray data = socket->readAll();
-        emit messageReceived(QString::fromUtf8(data));
+        // 按换行符拆分，处理粘包
+        for (const QByteArray &line : data.split('\n')) {
+            if (!line.trimmed().isEmpty())
+                emit messageReceived(QString::fromUtf8(line));
+        }
     });
     connect(socket, &QTcpSocket::errorOccurred,
         this, [this](QAbstractSocket::SocketError) {

@@ -27,6 +27,7 @@ private:
     QTcpServer *server;
     QList<QTcpSocket*> clients;
     QMap<QTcpSocket*, QString> clientNames;
+    void broadcastUserList();
 };
 
 #endif

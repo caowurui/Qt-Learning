@@ -2,7 +2,7 @@
 
 ## 📋 项目简介
 
-一个简单的 TCP 聊天服务器，支持多客户端连接、消息广播和私聊。
+一个基于 TCP 和 JSON 协议的聊天服务器，支持多客户端连接、昵称管理、消息广播和用户列表同步。
 无界面，纯命令行运行。配套 `Project_03_ChatClient` 使用。
 
 ---
@@ -12,36 +12,28 @@
 ### 阶段一：基础功能
 
 - [x] **1. 启动服务器，监听端口**
-  - 创建 `QTcpServer`，监听 `0.0.0.0:8888`
-  - 控制台输出 `Server started on port 8888`
-  - 涉及类：`QTcpServer`, `QHostAddress`
+  - `QTcpServer` 监听 `0.0.0.0:8888`
 
 - [x] **2. 接受客户端连接**
-  - 连接 `newConnection` 信号
-  - 获取 `nextPendingConnection()`，存入客户端列表
-  - 为新客户端连接 `readyRead` 和 `disconnected` 信号
-  - 客户端连接时，控制台输出 `Client connected: 127.0.0.1:xxxxx`
-  - 涉及类：`QTcpSocket`, `QList<QTcpSocket*>`
+  - 保存客户端 socket，连接信号
 
 - [x] **3. 消息广播**
-  - 收到某客户端消息后，转发给**其他所有**客户端
-  - 控制台输出收到的消息内容
-  - 涉及方法：`QTcpSocket::readAll()`, `write()`
+  - 收到消息后转发给所有客户端
 
 ### 阶段二：功能完善
 
-- [ ] **4. 处理客户端断开**
-  - 从客户端列表中移除已断开的 socket
-  - 通知其他客户端该用户已离线
-  - 控制台输出 `Client disconnected: 127.0.0.1:xxxxx`
+- [x] **4. 处理客户端断开**
+  - 清理 socket 和昵称映射
+  - 广播用户离线通知
 
-- [ ] **5. 解析并转发用户列表**
-  - 维护一个用户名 → socket 的映射表
-  - 客户端连接时先发送昵称
-  - 用户上下线时，广播最新的用户列表给所有客户端
+- [x] **5. 昵称管理与用户列表**
+  - `NICK` JSON 协议注册昵称
+  - 昵称重复/保留名检查
+  - `USERLIST` 广播给所有客户端
+  - 上下线时自动更新列表
 
 - [ ] **6. 支持私聊转发**
-  - 识别消息中的私聊标记（如 `@用户名 消息内容`）
+  - 识别 `PRIVATE` 类型消息
   - 只转发给指定的目标客户端
 
 ### 阶段三：完善
@@ -70,11 +62,8 @@ Project_03_ChatServer/
 ## 🚀 启动步骤
 
 ```bash
-# 编译
 cd build_root && cmake .. -G Ninja && cd ..
 cmake --build build_root
-
-# 运行
 ./build_root/Project_03_ChatServer/Project_03_ChatServer.exe
 ```
 
@@ -88,5 +77,5 @@ cmake --build build_root
 | 阶段 | 核心知识点 |
 |------|-----------|
 | 基础功能 | `QTcpServer` 监听、`QTcpSocket` 读写 |
-| 功能完善 | 连接管理、协议设计 |
+| 功能完善 | 连接管理、JSON 协议 |
 | 完善 | 代码组织、文档编写 |

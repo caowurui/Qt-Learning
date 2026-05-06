@@ -4,11 +4,7 @@
 
 创建一个基于 TCP 协议的网络聊天室客户端，支持连接服务器、收发消息、在线用户列表和私聊功能。
 
-> ⚠️ 本项目仅包含**客户端**代码。你需要一个服务器来测试。建议完成后端项目 `Project_03_ChatServer`，
-> 或使用一个简单的 TCP 测试工具（如 `netcat`）在本地启动一个回显服务器：
-> ```bash
-> nc -l -p 8888
-> ```
+配套服务端项目：`Project_03_ChatServer`
 
 ---
 
@@ -32,18 +28,17 @@
 
 - [x] **3. 收发文本消息**
   - 实现 `sendMessage(QString text)` 方法，通过 socket 写入数据
-  - 监听 socket 的 `readyRead` 信号，读取服务器发来的数据
+  - 监听 socket 的 `readyRead` 信号，按行拆分解析 JSON
   - 在状态栏显示连接状态（已连接/未连接）
   - 涉及类：`QTcpSocket::write()`, `readyRead`
 
 ### 阶段二：聊天 UI
 
 - [x] **4. 显示收到的消息**
-  - 创建一个只读的 `QTextEdit` 或 `QListWidget` 作为消息显示区域
-  - 将收到的消息追加到显示区域
-  - 每条消息显示为 `[昵称]: 消息内容` 的格式
-  - 自动滚动到底部，显示最新消息
-  - 涉及类：`QTextEdit`（只读模式）, `QScrollBar`
+  - 只读 `QTextEdit` 作为消息显示区域
+  - 消息格式 `[时间] [昵称]: 内容`
+  - 自动滚动到底部
+  - 涉及类：`QTextEdit`（只读模式）
 
 - [x] **5. 发送消息界面**
   - 聊天区域底部添加文本输入框和"发送"按钮
@@ -51,23 +46,18 @@
   - 发送成功后清空输入框
   - 涉及类：`QLineEdit`, `QPushButton`
 
-- [ ] **6. 用户列表显示**
-  - 左侧添加 `QListWidget` 显示在线用户
-  - 服务器发送用户列表时，更新显示
-  - 当前用户自己显示在列表第一位或特殊标记
-  - 涉及类：`QListWidget`, `QSplitter`（分割左右区域）
+- [x] **6. 用户列表显示**
+  - 左侧 `QListWidget` 显示在线用户，由服务端 `USERLIST` 消息驱动
+  - 有人上线/下线时自动更新
+  - 断开连接时清空列表
+  - 涉及类：`QListWidget`, `QSplitter`
 
 ### 阶段三：功能完善
 
-- [ ] **7. 区分消息类型（公共/私聊/系统）**
-  - 定义简单的文本协议格式，如：
-    - 公共消息：`PUBLIC|sender|content`
-    - 私聊消息：`PRIVATE|sender|receiver|content`
-    - 系统消息：`SYSTEM|content`
-    - 用户列表：`USERLIST|user1,user2,user3`
-  - 在 `MessageHandler` 中解析消息类型
-  - 不同类型的消息用不同颜色或前缀显示
-  - 涉及类：`QString::split()`, `QTextCharFormat`
+- [x] **7. 消息类型与 JSON 协议**
+  - 所有通信使用 JSON 格式，通过 `\n` 分隔
+  - 消息类型：`NICK`、`MESSAGE`、`PUBLIC`、`SYSTEM`、`USERLIST`
+  - 涉及类：`QJsonDocument`, `QJsonObject`, `QJsonArray`
 
 - [ ] **8. 私聊功能**
   - 双击用户列表中的某个用户，自动在输入框中填入 `/w 用户名 `
@@ -85,13 +75,14 @@
 
 - [x] **10. 昵称设置**
   - 启动时弹出一个对话框输入昵称
-  - 连接时发送昵称到服务器
+  - 连接时发送 JSON 格式的 `NICK` 消息到服务器
+  - 未连接时可通过"更改昵称"按钮修改
   - 涉及类：`QInputDialog`
 
-- [ ] **11. 消息历史与时间戳**
-  - 每条消息前显示时间戳 `[HH:mm]`
-  - 在内存中保存最近 100 条消息
-  - 涉及类：`QDateTime`, `QList<QString>`
+- [x] **11. 消息时间戳**
+  - 时间戳由服务端生成，所有客户端时间统一
+  - 格式 `[HH:mm]`
+  - 涉及类：`QDateTime`（服务端）
 
 - [ ] **12. 代码清理与注释**
   - 清理所有 TODO 注释
@@ -107,12 +98,9 @@ Project_03_ChatClient/
 ├── CMakeLists.txt
 ├── README.md
 └── src/
-    ├── main.cpp                    # 主程序入口
-    ├── MainWindow.h/cpp            # 主窗口
-    ├── ClientConnection.h/cpp      # TCP 连接管理
-    ├── MessageHandler.h/cpp        # 消息解析与格式化
-    └── tests/
-        └── test_connection.cpp     # 连接测试
+    ├── main.cpp                    # 程序入口
+    ├── MainWindow.h/cpp            # 主窗口（UI + 逻辑）
+    └── ClientConnection.h/cpp      # TCP 连接管理
 ```
 
 ---
@@ -122,13 +110,13 @@ Project_03_ChatClient/
 - Qt官方文档：https://doc.qt.io/qt-6/
 - Qt Network模块：https://doc.qt.io/qt-6/qtnetwork-index.html
 - QTcpSocket：https://doc.qt.io/qt-6/qtcpsocket.html
-- Qt线程：https://doc.qt.io/qt-6/qthread.html
+- QJsonDocument：https://doc.qt.io/qt-6/qjsondocument.html
 
 ## 📝 学习要点
 
 | 阶段 | 核心知识点 |
 |------|-----------|
-| 网络连接 | `QTcpSocket`、信号与槽的异步通信 |
+| 网络连接 | `QTcpSocket`、信号与槽异步通信 |
 | 聊天 UI | 控件布局、`QTextEdit` 只读模式 |
-| 功能完善 | 文本协议设计、`QTimer` 重连机制 |
-| 完善 | 数据持久化、代码组织、文档编写 |
+| 功能完善 | JSON 协议设计、粘包处理 |
+| 完善 | 代码组织、文档编写 |

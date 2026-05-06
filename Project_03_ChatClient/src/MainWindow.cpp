@@ -14,6 +14,7 @@
 #include <QDateTime>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -64,12 +65,12 @@ MainWindow::MainWindow(QWidget *parent)
         changeNickBtn->setEnabled(true);
         msgInput->setEnabled(false);
         sendBtn->setEnabled(false);
+        userList->clear();
     });
     connect(connection, &ClientConnection::messageReceived,
         this, [this](QString raw) {
         // 解析 JSON
         QJsonDocument doc = QJsonDocument::fromJson(raw.toUtf8());
-        if (doc.isNull()) { msgDisplay->append(raw); return; }
 
         QJsonObject obj = doc.object();
         QString type = obj["type"].toString();
@@ -80,6 +81,13 @@ MainWindow::MainWindow(QWidget *parent)
             QString content = obj["content"].toString();
             msgDisplay->append(QString("[%1] [%2]: %3").arg(time, sender, content));
 
+        } else if (type == "USERLIST") {
+            userList->clear();
+            QJsonArray users = obj["users"].toArray();
+            for (const auto &u : users) {
+                userList->addItem(u.toString());
+            }
+
         } else if (type == "SYSTEM") {
             QString content = obj["content"].toString();
             if (content.contains("已被使用")) {
@@ -88,8 +96,6 @@ MainWindow::MainWindow(QWidget *parent)
             } else {
                 msgDisplay->append("【" + content + "】");
             }
-        } else {
-            msgDisplay->append(raw);
         }
     });
 
@@ -109,7 +115,10 @@ MainWindow::MainWindow(QWidget *parent)
         this, [this]() {
         QString text = msgInput->text();
         if (!text.isEmpty()) {
-            connection->sendMessage(text);
+            QJsonObject msg;
+            msg["type"] = "PUBLIC";
+            msg["content"] = text;
+            connection->sendMessage(QJsonDocument(msg).toJson(QJsonDocument::Compact));
             msgInput->clear();
         }
     });

@@ -4,6 +4,7 @@
 #include <QDateTime>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
 
 ChatServer::ChatServer(QObject *parent)
     : QObject(parent)
@@ -69,7 +70,7 @@ void ChatServer::onReadyRead()
                 QJsonObject err;
                 err["type"] = "SYSTEM";
                 err["content"] = "昵称 " + nick + " 不允许使用";
-                client->write(QJsonDocument(err).toJson(QJsonDocument::Compact));
+                client->write(QJsonDocument(err).toJson(QJsonDocument::Compact) + "\n");
                 client->disconnectFromHost();
                 return;
             }
@@ -78,7 +79,7 @@ void ChatServer::onReadyRead()
                 QJsonObject err;
                 err["type"] = "SYSTEM";
                 err["content"] = "昵称 " + nick + " 已被使用，请重新连接";
-                client->write(QJsonDocument(err).toJson(QJsonDocument::Compact));
+                client->write(QJsonDocument(err).toJson(QJsonDocument::Compact) + "\n");
                 client->disconnectFromHost();
                 qDebug() << "昵称重复:" << nick;
                 return;
@@ -91,32 +92,38 @@ void ChatServer::onReadyRead()
             QJsonObject notice;
             notice["type"] = "SYSTEM";
             notice["content"] = nick + " 加入了聊天室";
-            QByteArray noticeData = QJsonDocument(notice).toJson(QJsonDocument::Compact);
+            QByteArray noticeData = QJsonDocument(notice).toJson(QJsonDocument::Compact) + "\n";
             for (auto *c : clients) {
                 if (c != client)
                     c->write(noticeData);
             }
+
+            broadcastUserList();
             return;
         }
 
-        return;  // 其他 JSON 类型暂不处理
-    }
+        else if (type == "PUBLIC") {
+            QString messageContent = obj["content"].toString();
 
-    // 否则作为公共消息广播
-    QString nick = clientNames.value(client, "未知");
-    if (nick == "未知") return;  // 未注册昵称，忽略消息
+            if (messageContent.isEmpty()) return;
 
-    QString time = QDateTime::currentDateTime().toString("HH:mm");
+            // 广播消息
+            QString nick = clientNames.value(client, "未知");
+            if (nick == "未知") return;
 
-    QJsonObject msg;
-    msg["type"] = "PUBLIC";
-    msg["sender"] = nick;
-    msg["time"] = time;
-    msg["content"] = raw;
+            QString time = QDateTime::currentDateTime().toString("HH:mm");
 
-    QByteArray broadcast = QJsonDocument(msg).toJson(QJsonDocument::Compact);
-    for (auto *c : clients) {
-        c->write(broadcast);
+            QJsonObject msg;
+            msg["type"] = "PUBLIC";
+            msg["sender"] = nick;
+            msg["time"] = time;
+            msg["content"] = messageContent;
+
+            QByteArray broadcast = QJsonDocument(msg).toJson(QJsonDocument::Compact) + "\n";
+            for (auto *c : clients) {
+                c->write(broadcast);
+            }
+        }
     }
 }
 
@@ -135,10 +142,29 @@ void ChatServer::onDisconnected()
         QJsonObject notice;
         notice["type"] = "SYSTEM";
         notice["content"] = nick + " 离开了聊天室";
-        QByteArray data = QJsonDocument(notice).toJson(QJsonDocument::Compact);
+        QByteArray data = QJsonDocument(notice).toJson(QJsonDocument::Compact) + "\n";
         for (auto *c : clients) {
             c->write(data);
         }
+
+        broadcastUserList();
         qDebug() << nick << "断开连接";
+    }
+}
+
+void ChatServer::broadcastUserList()
+{
+    QJsonArray userArray;
+    for (const QString &name : clientNames.values()) {
+        userArray.append(name);
+    }
+
+    QJsonObject msg;
+    msg["type"] = "USERLIST";
+    msg["users"] = userArray;
+
+    QByteArray data = QJsonDocument(msg).toJson(QJsonDocument::Compact) + "\n";
+    for (auto *c : clients) {
+        c->write(data);
     }
 }
