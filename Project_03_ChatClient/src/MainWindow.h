@@ -37,9 +37,11 @@ private:
     QListWidget *userList;
     QTextEdit *msgDisplay;
 
-    // 底部输入
+    // 底部
     QLineEdit *msgInput;
     QPushButton *sendBtn;
+    QLabel *privateLabel;
+    QPushButton *cancelBtn;
 
 public:
     void createConnection();
@@ -49,6 +51,7 @@ public:
     void receiveMessage(const QString &raw);
     void sendMessage();
     void setPrivateMode(QListWidgetItem *item);
+    void cancelPrivate();
 
 
     void changeNickname();

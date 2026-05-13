@@ -24,6 +24,9 @@ MainWindow::MainWindow(QWidget *parent)
     nickname = "用户";
     updateNicknameDisplay();
 
+    privateMode = false;
+    privateTarget.clear();
+
     connection = new ClientConnection(this);
 
     connect(connectBtn, &QPushButton::clicked,
@@ -61,6 +64,8 @@ MainWindow::MainWindow(QWidget *parent)
     // 私聊功能
     connect(userList, &QListWidget::itemDoubleClicked,
         this, &MainWindow::setPrivateMode);
+    connect(cancelBtn, &QPushButton::clicked,
+        this, &MainWindow::cancelPrivate);
 }
 
 void MainWindow::setupUI()
@@ -124,7 +129,19 @@ void MainWindow::setupUI()
     msgDisplay->setReadOnly(true);
     rightLayout->addWidget(msgDisplay);
 
-    // 底部输入栏
+    // 底部
+    QWidget *privateMessage = new QWidget();
+    QHBoxLayout *privateLayout = new QHBoxLayout(privateMessage);
+    privateLayout->setContentsMargins(0, 0, 0, 0);
+    privateLabel = new QLabel();
+    privateLabel->setVisible(false);
+    cancelBtn = new QPushButton("x");
+    cancelBtn->setVisible(false);
+    privateLayout->addWidget(privateLabel);
+    privateLayout->addWidget(cancelBtn);
+    privateLayout->addStretch();
+    rightLayout->addWidget(privateMessage);
+
     QWidget *inputBar = new QWidget();
     QHBoxLayout *inputLayout = new QHBoxLayout(inputBar);
     inputLayout->setContentsMargins(0, 0, 0, 0);
@@ -202,6 +219,7 @@ void MainWindow::receiveMessage(const QString &raw)
 {
     // 解析 JSON
     QJsonDocument doc = QJsonDocument::fromJson(raw.toUtf8());
+    if (doc.isNull()) return;
 
     QJsonObject obj = doc.object();
     QString type = obj["type"].toString();
@@ -232,8 +250,15 @@ void MainWindow::receiveMessage(const QString &raw)
         QString sender = obj["sender"].toString();
         QString time = obj["time"].toString();
         QString content = obj["content"].toString();
-        msgDisplay->append(QString("[%1] [%2]: %3").arg(time, sender, content));
+        QString receiver = obj["receiver"].toString();
 
+        if (receiver == nickname) {
+            msgDisplay->append(QString("[%1] [%2 → 你]：%3").arg(time, sender, content));
+
+        }else {
+            msgDisplay->append(QString("[%1] [你 → %2]: %3").arg(time, receiver, content));
+
+        }
     }
 }
 
@@ -252,6 +277,7 @@ void MainWindow::sendMessage()
         msg["content"] = text;
         connection->sendMessage(QJsonDocument(msg).toJson(QJsonDocument::Compact));
         msgInput->clear();
+        cancelPrivate();
     }
 }
 
@@ -274,9 +300,22 @@ void MainWindow::changeNickname()
 void MainWindow::setPrivateMode(QListWidgetItem *item)
 {
     QString text = item->text();
+    if(text==nickname)return;
     if(!text.isEmpty())
     {
         privateTarget = text;
         privateMode = true;
+        privateLabel->setText("私聊给:" + privateTarget);
+        privateLabel->setVisible(true);
+        cancelBtn->setVisible(true);
+        msgInput->setFocus();
     }
+}
+
+void MainWindow::cancelPrivate()
+{
+    privateLabel->setVisible(false);
+    cancelBtn->setVisible(false);
+    privateMode = false;
+    privateTarget.clear();
 }

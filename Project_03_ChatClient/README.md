@@ -59,10 +59,10 @@
   - 消息类型：`NICK`、`MESSAGE`、`PUBLIC`、`SYSTEM`、`USERLIST`
   - 涉及类：`QJsonDocument`, `QJsonObject`, `QJsonArray`
 
-- [ ] **8. 私聊功能**
+- [x] **8. 私聊功能**
   - 双击用户列表中的某个用户，自动在输入框中填入 `/w 用户名 `
-  - 发送私聊消息时，消息显示区域标注"私聊给 XXX"
-  - 收到私聊时，标注"XXX 私聊给你"
+  - 发送私聊消息时，消息显示区域标注"你 → XXX"
+  - 收到私聊时，标注"XXX → 你"
   - 涉及类：`QListWidget::itemDoubleClicked`
 
 - [ ] **9. 连接状态与断线重连**

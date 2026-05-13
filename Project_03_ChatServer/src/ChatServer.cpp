@@ -135,6 +135,7 @@ void ChatServer::onReadyRead()
 
         QString messageTarget = obj["target"].toString();
         if (messageTarget.isEmpty()) return;
+        if (messageTarget == nick) return;
 
         QTcpSocket *target = clientNames.key(messageTarget,nullptr);
         if (target == nullptr) return;
@@ -144,13 +145,13 @@ void ChatServer::onReadyRead()
         QJsonObject msg;
         msg["type"] = "PRIVATE";
         msg["sender"] = nick;
-        // msg["receiver"] = messageTarget;
+        msg["receiver"] = messageTarget;
         msg["content"] = messageContent;
         msg["time"] = time;
 
         QByteArray broadcast = QJsonDocument(msg).toJson(QJsonDocument::Compact) + "\n";
-        target->write(broadcast);
         client->write(broadcast);
+        target->write(broadcast);
     }
 }
 
