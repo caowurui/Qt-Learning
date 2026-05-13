@@ -59,4 +59,13 @@
     "hide": "never",
     "tags": ["run", "project03"],
   },
+  // ==================== Project 04 ====================
+  {
+    "label": "Run Project 04",
+    "command": "./build_root/Project_04_MusicPlayer/Project_04_MusicPlayer.exe",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always",
+    "hide": "never",
+    "tags": ["run", "project04"],
+  },
 ]

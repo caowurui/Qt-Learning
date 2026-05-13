@@ -2,51 +2,85 @@
 
 ## 📋 项目简介
 
-创建一个功能完整的音乐播放器，支持播放列表、播放控制、音量调节、可视化等功能。
+创建一个功能完整的音乐播放器，支持音频文件加载、播放控制、播放列表、音量和可视化功能。
 
-## 🎯 项目要求
+---
 
-### 基础功能
-1. **音乐加载**
-   - 扫描本地音乐文件
-   - 支持常见音频格式（MP3, WAV, FLAC, OGG）
-   - 显示文件列表
-   - 文件信息显示（歌名、艺术家、专辑）
+## 🗺️ 分步实现路径
 
-2. **播放控制**
-   - 播放/暂停
-   - 上一首/下一首
-   - 进度条拖动
-   - 播放速度调节
+### 阶段一：播放核心
 
-3. **音量控制**
-   - 音量滑块
-   - 静音功能
-   - 音量预设
+- [ ] **1. 创建主窗口框架**
+  - 创建 `main.cpp` 和 `MainWindow`
+  - 设计布局：顶部是播放控制栏，中部是播放列表/专辑封面，底部是进度条
+  - 涉及类：`QMainWindow`, `QVBoxLayout`, `QHBoxLayout`
 
-### 进阶功能
-1. **播放列表**
-   - 播放列表管理
-   - 循环模式（单曲循环、列表循环、随机播放）
-   - 播放顺序
-   - 播放历史
+- [ ] **2. 实现基础播放功能**
+  - 创建 `MusicPlayer` 类，封装 `QMediaPlayer` 和 `QAudioOutput`
+  - 实现播放/暂停/停止
+  - 加载本地音频文件路径
+  - 涉及类：`QMediaPlayer`, `QAudioOutput`, `QUrl`
 
-2. **可视化**
-   - 频谱分析
-   - 波形显示
-   - 专辑封面显示
+- [ ] **3. 添加播放控制按钮**
+  - 界面中添加播放/暂停、上一首、下一首按钮
+  - 连接按钮到 `MusicPlayer` 的对应方法
+  - 显示当前播放状态（播放中/已暂停）
+  - 涉及类：`QPushButton`, `QLabel`
 
-3. **音效**
-   - 均衡器
-   - 淡入淡出
-   - 重低音
+### 阶段二：进度与音量
 
-### 代码质量要求
-1. 遵循Qt编码规范
-2. 使用MVC模式
-3. 代码结构清晰
-4. 有适当的注释
-5. 支持单元测试
+- [ ] **4. 实现进度条控制**
+  - 显示当前播放位置和总时长
+  - `QSlider` 显示播放进度，可拖动跳转
+  - 连接 `QMediaPlayer::positionChanged` 和 `durationChanged` 信号
+  - 涉及类：`QSlider`, `QLabel`
+
+- [ ] **5. 实现音量控制**
+  - 添加音量滑块和静音按钮
+  - 通过 `QAudioOutput::setVolume()` 控制音量
+  - 涉及类：`QSlider`, `QPushButton`
+
+### 阶段三：播放列表
+
+- [ ] **6. 加载音乐文件**
+  - 点击"打开文件"或"打开文件夹"按钮，选择音频文件
+  - 支持格式：MP3、WAV、FLAC、OGG
+  - 显示文件信息（歌名、时长）
+  - 涉及类：`QFileDialog`, `QFileInfo`, `QDir`
+
+- [ ] **7. 播放列表管理**
+  - 创建 `PlaylistModel` 管理歌曲列表
+  - 显示在 `QListWidget` 或 `QTableView` 中
+  - 点击列表项直接播放
+  - 支持删除歌曲、清空列表
+  - 涉及类：`QListWidget`, `QFileInfo`
+
+- [ ] **8. 循环与切换模式**
+  - 上一首/下一首切换
+  - 循环模式切换：单曲循环、列表循环、随机播放
+  - 当前歌曲播放完毕后自动切到下一首
+  - 涉及类：`QMediaPlayer::mediaStatusChanged`
+
+### 阶段四：增强功能
+
+- [ ] **9. 专辑封面显示**
+  - 读取音频文件的封面图片（如有）
+  - 在界面中显示专辑封面
+  - 涉及类：`QMediaMetaData`, `QPixmap`, `QLabel`
+
+- [ ] **10. 音频可视化（可选）**
+  - 使用 `QAudioProbe` 获取音频数据
+  - 在自定义 `QWidget` 中绘制频谱或波形
+  - 涉及类：`QAudioProbe`, `QPainter`
+
+### 阶段五：完善
+
+- [ ] **11. 代码清理与注释**
+  - 清理所有 TODO 注释
+  - 为每个类和方法添加文档注释
+  - 整理代码格式
+
+---
 
 ## 📂 项目结构
 
@@ -55,92 +89,37 @@ Project_04_MusicPlayer/
 ├── CMakeLists.txt
 ├── README.md
 └── src/
-    ├── main.cpp                    # 主程序入口
-    ├── MainWindow.h                # 主窗口头文件
-    ├── MainWindow.cpp              # 主窗口实现
-    ├── MusicPlayer.h               # 音乐播放器头文件
-    ├── MusicPlayer.cpp             # 音乐播放器实现
-    ├── PlaylistModel.h             # 播放列表模型头文件
-    ├── PlaylistModel.cpp           # 播放列表模型实现
-    ├── TrackInfo.h                 # 曲目信息头文件
-    ├── TrackInfo.cpp               # 曲目信息实现
-    ├── PlaylistWidget.h            # 播放列表组件头文件
-    ├── PlaylistWidget.cpp          # 播放列表组件实现
-    ├── VisualizerWidget.h          # 可视化组件头文件
-    ├── VisualizerWidget.cpp        # 可视化组件实现
-    ├── EqualizerDialog.h           # 均衡器对话框头文件
-    ├── EqualizerDialog.cpp         # 均衡器对话框实现
+    ├── main.cpp                    # 程序入口
+    ├── MainWindow.h/cpp            # 主窗口
+    ├── MusicPlayer.h/cpp           # 播放器封装
     └── tests/
-        ├── test_player.cpp         # 播放器测试
-        └── test_playlist.cpp       # 播放列表测试
+        └── test_player.cpp         # 播放器测试
 ```
 
-## 🔧 技术要点
+---
 
-### 需要学习的知识
-1. Qt的Qt Multimedia模块
-2. QMediaPlayer和QAudioOutput
-3. Qt的QtMultimediaWidgets
-4. 音频解码和处理
-5. 音频频谱分析
-6. Qt的MVC模式
-7. Qt的模型视图框架
-8. Qt的信号与槽
+## 🔧 涉及类速查
 
-### 设计模式
-1. MVC模式
-2. 观察者模式
-3. 策略模式（播放策略）
-4. 单例模式（播放器实例）
-
-## 🚀 启动步骤
-
-### 编译
-```bash
-mkdir build
-cd build
-cmake ..
-cmake --build .
-```
-
-### 运行
-```bash
-cd build
-./Project_04_MusicPlayer
-```
-
-### 注意事项
-- 需要系统支持音频解码
-- 某些音频格式可能需要额外解码器
-- Windows上需要安装DirectShow解码器
-- macOS上需要安装QuickTime
-- Linux上需要安装GStreamer或FFmpeg
+| 类 | 用途 |
+|------|------|
+| `QMediaPlayer` | 核心播放器，控制播放/暂停/跳转 |
+| `QAudioOutput` | 音频输出，控制音量和静音 |
+| `QSlider` | 进度条和音量滑块 |
+| `QFileDialog` | 选择音乐文件或文件夹 |
+| `QMediaMetaData` | 读取音频元信息（歌名、专辑、封面） |
+| `QAudioProbe` | 获取音频数据用于可视化 |
 
 ## 📚 参考资源
 
-- Qt官方文档：https://doc.qt.io/qt-6/
-- Qt Multimedia模块：https://doc.qt.io/qt-6/qtmultimedia-index.html
-- QMediaPlayer：https://doc.qt.io/qt-6/qmediaplayer.html
-- QAudioOutput：https://doc.qt.io/qt-6/qaudiooutput.html
-- Qt音频可视化：https://doc.qt.io/qt-6/visualize-spectrum.html
+- [Qt Multimedia 模块](https://doc.qt.io/qt-6/qtmultimedia-index.html)
+- [QMediaPlayer](https://doc.qt.io/qt-6/qmediaplayer.html)
+- [QAudioOutput](https://doc.qt.io/qt-6/qaudiooutput.html)
 
-## 💡 学习建议
+## 📝 学习要点
 
-1. 先实现基本的播放功能
-2. 再添加播放列表功能
-3. 实现播放控制功能
-4. 添加可视化功能
-5. 实现均衡器
-6. 优化用户体验
-7. 处理各种音频格式
-
-## ✅ 验收标准
-
-- [ ] 可以加载和播放音乐
-- [ ] 支持播放列表
-- [ ] 实现播放控制
-- [ ] 实现音量控制
-- [ ] 显示可视化效果
-- [ ] 代码有良好注释
-- [ ] 符合MVC设计模式
-- [ ] 符合Qt编码规范
+| 阶段 | 核心知识点 |
+|------|-----------|
+| 播放核心 | `QMediaPlayer`、`QAudioOutput`、状态管理 |
+| 进度与音量 | 信号与槽的实时更新、滑块交互 |
+| 播放列表 | 文件 I/O、列表模型、播放模式切换 |
+| 增强功能 | 元数据读取、自定义绘制 |

@@ -12,7 +12,7 @@
 | 02 | 文本编辑器 | ✅ **已完成** | Qt GUI、多标签、查找替换、语法高亮 | [查看](Project_02_TextEditor/README.md) |
 | 03s | 聊天服务器 | ✅ **已完成** | QTcpServer、JSON协议、用户管理 | [查看](Project_03_ChatServer/README.md) |
 | 03c | 聊天客户端 | ✅ **已完成** | QTcpSocket、JSON协议、私聊、重连 | [查看](Project_03_ChatClient/README.md) |
-| 04 | 音乐播放器 | ⬜ 待开始 | 多媒体、播放器、可视化 | [查看](Project_04_MusicPlayer/README.md) |
+| 04 | 音乐播放器 | 🔄 **进行中** | 多媒体、播放器、可视化 | [查看](Project_04_MusicPlayer/README.md) |
 | 05 | 任务管理器 | ⬜ 待开始 | 数据库、MVC、拖放 | [查看](Project_05_TaskManager/README.md) |
 | 06 | 数据库客户端 | ⬜ 待开始 | 数据库深入、架构设计 | [查看](Project_06_DatabaseClient/README.md) |
 | 07 | 游戏引擎基础 | ⬜ 待开始 | 图形编程、碰撞检测、性能优化 | [查看](Project_07_GameEngine/README.md) |
@@ -95,7 +95,7 @@ Cpp_Learning/
 ├── Project_02_TextEditor/           # ✅ 已完成
 ├── Project_03_ChatServer/           # ✅ 已完成
 ├── Project_03_ChatClient/           # ✅ 已完成
-├── Project_04_MusicPlayer/          # ⬜ 待开始
+├── Project_04_MusicPlayer/          # 🔄 进行中
 ├── Project_05_TaskManager/          # ⬜ 待开始
 ├── Project_06_DatabaseClient/       # ⬜ 待开始
 └── Project_07_GameEngine/           # ⬜ 待开始
