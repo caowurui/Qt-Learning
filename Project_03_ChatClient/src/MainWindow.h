@@ -10,6 +10,7 @@ class QLabel;
 class QTextEdit;
 class QListWidget;
 class QSplitter;
+class QListWidgetItem;
 
 class MainWindow : public QMainWindow
 {
@@ -42,10 +43,22 @@ private:
 
 public:
     void createConnection();
+    void connectOn();
+    void connectOff();
+
+    void receiveMessage(const QString &raw);
+    void sendMessage();
+    void setPrivateMode(QListWidgetItem *item);
+
+
+    void changeNickname();
 
 private:
     ClientConnection *connection;
     QString nickname;
+
+    bool privateMode;
+    QString privateTarget;
 };
 
 #endif

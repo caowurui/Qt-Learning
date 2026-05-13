@@ -21,18 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     setupUI();
 
-    bool ok;
-    do {
-        nickname = QInputDialog::getText(this, "昵称",
-                "请输入你的昵称:",
-                QLineEdit::Normal, "用户", &ok);
-        if (!ok) {
-            nickname = "用户";
-            break;
-        }
-        nickname = nickname.trimmed();
-    } while (nickname.isEmpty() || nickname == "未知" || nickname == "匿名");
-
+    nickname = "用户";
     updateNicknameDisplay();
 
     connection = new ClientConnection(this);
@@ -40,64 +29,11 @@ MainWindow::MainWindow(QWidget *parent)
     connect(connectBtn, &QPushButton::clicked,
         this, &MainWindow::createConnection);
     connect(connection, &ClientConnection::connected,
-        this, [this]() {
-        qDebug() << "连接成功";
-        statusLabel->setText("● 已连接");
-        statusBar()->showMessage("已连接到服务器");
-        connectBtn->setEnabled(false);
-        disconnectBtn->setEnabled(true);
-        changeNickBtn->setEnabled(false);
-        msgInput->setEnabled(true);
-        sendBtn->setEnabled(true);
-        msgInput->setFocus();
-        QJsonObject nickObj;
-        nickObj["type"] = "NICK";
-        nickObj["nickname"] = nickname;
-        connection->sendMessage(QJsonDocument(nickObj).toJson(QJsonDocument::Compact));
-    });
+        this, &MainWindow::connectOn);
     connect(connection, &ClientConnection::disconnected,
-        this, [this]() {
-        qDebug() << "断开连接";
-        statusLabel->setText("● 未连接");
-        statusBar()->showMessage("已断开连接");
-        connectBtn->setEnabled(true);
-        disconnectBtn->setEnabled(false);
-        changeNickBtn->setEnabled(true);
-        msgInput->setEnabled(false);
-        sendBtn->setEnabled(false);
-        userList->clear();
-    });
+        this, &MainWindow::connectOff);
     connect(connection, &ClientConnection::messageReceived,
-        this, [this](QString raw) {
-        // 解析 JSON
-        QJsonDocument doc = QJsonDocument::fromJson(raw.toUtf8());
-
-        QJsonObject obj = doc.object();
-        QString type = obj["type"].toString();
-
-        if (type == "PUBLIC") {
-            QString sender = obj["sender"].toString();
-            QString time = obj["time"].toString();
-            QString content = obj["content"].toString();
-            msgDisplay->append(QString("[%1] [%2]: %3").arg(time, sender, content));
-
-        } else if (type == "USERLIST") {
-            userList->clear();
-            QJsonArray users = obj["users"].toArray();
-            for (const auto &u : users) {
-                userList->addItem(u.toString());
-            }
-
-        } else if (type == "SYSTEM") {
-            QString content = obj["content"].toString();
-            if (content.contains("已被使用")) {
-                msgDisplay->append("【" + content + "】");
-                connection->disconnectFromServer();
-            } else {
-                msgDisplay->append("【" + content + "】");
-            }
-        }
-    });
+        this, &MainWindow::receiveMessage);
 
     // 错误处理
     connect(connection, &ClientConnection::errorOccurred,
@@ -112,36 +48,19 @@ MainWindow::MainWindow(QWidget *parent)
 
     // 发送消息
     connect(sendBtn, &QPushButton::clicked,
-        this, [this]() {
-        QString text = msgInput->text();
-        if (!text.isEmpty()) {
-            QJsonObject msg;
-            msg["type"] = "PUBLIC";
-            msg["content"] = text;
-            connection->sendMessage(QJsonDocument(msg).toJson(QJsonDocument::Compact));
-            msgInput->clear();
-        }
-    });
+        this, &MainWindow::sendMessage);
 
     // Enter 键发送
     connect(msgInput, &QLineEdit::returnPressed,
         sendBtn, &QPushButton::click);
 
     // 更改昵称
-    connect(changeNickBtn, &QPushButton::clicked, this, [this]() {
-        bool ok;
-        QString newNick;
-        do {
-            newNick = QInputDialog::getText(this, "更改昵称",
-                    "请输入新昵称:",
-                    QLineEdit::Normal, nickname, &ok);
-            if (!ok) return;
-            newNick = newNick.trimmed();
-        } while (newNick.isEmpty()
-                 || newNick == "未知" || newNick == "匿名");
-        nickname = newNick;
-        updateNicknameDisplay();
-    });
+    connect(changeNickBtn, &QPushButton::clicked,
+        this, &MainWindow::changeNickname);
+
+    // 私聊功能
+    connect(userList, &QListWidget::itemDoubleClicked,
+        this, &MainWindow::setPrivateMode);
 }
 
 void MainWindow::setupUI()
@@ -247,4 +166,117 @@ void MainWindow::createConnection()
     }
     QString host = hostInput->text();
     connection->connectToServer(host, port);
+}
+
+void MainWindow::connectOn()
+{
+    qDebug() << "连接成功";
+    statusLabel->setText("● 已连接");
+    statusBar()->showMessage("已连接到服务器");
+    connectBtn->setEnabled(false);
+    disconnectBtn->setEnabled(true);
+    changeNickBtn->setEnabled(false);
+    msgInput->setEnabled(true);
+    sendBtn->setEnabled(true);
+    msgInput->setFocus();
+    QJsonObject nickObj;
+    nickObj["type"] = "NICK";
+    nickObj["nickname"] = nickname;
+    connection->sendMessage(QJsonDocument(nickObj).toJson(QJsonDocument::Compact));
+}
+
+void MainWindow::connectOff()
+{
+    qDebug() << "断开连接";
+    statusLabel->setText("● 未连接");
+    statusBar()->showMessage("已断开连接");
+    connectBtn->setEnabled(true);
+    disconnectBtn->setEnabled(false);
+    changeNickBtn->setEnabled(true);
+    msgInput->setEnabled(false);
+    sendBtn->setEnabled(false);
+    userList->clear();
+}
+
+void MainWindow::receiveMessage(const QString &raw)
+{
+    // 解析 JSON
+    QJsonDocument doc = QJsonDocument::fromJson(raw.toUtf8());
+
+    QJsonObject obj = doc.object();
+    QString type = obj["type"].toString();
+
+    if (type == "PUBLIC") {
+        QString sender = obj["sender"].toString();
+        QString time = obj["time"].toString();
+        QString content = obj["content"].toString();
+        msgDisplay->append(QString("[%1] [%2]: %3").arg(time, sender, content));
+
+    } else if (type == "USERLIST") {
+        userList->clear();
+        QJsonArray users = obj["users"].toArray();
+        for (const auto &u : users) {
+            userList->addItem(u.toString());
+        }
+
+    } else if (type == "SYSTEM") {
+        QString content = obj["content"].toString();
+        if (content.contains("已被使用")) {
+            msgDisplay->append("【" + content + "】");
+            connection->disconnectFromServer();
+        } else {
+            msgDisplay->append("【" + content + "】");
+        }
+
+    } else if (type == "PRIVATE") {
+        QString sender = obj["sender"].toString();
+        QString time = obj["time"].toString();
+        QString content = obj["content"].toString();
+        msgDisplay->append(QString("[%1] [%2]: %3").arg(time, sender, content));
+
+    }
+}
+
+void MainWindow::sendMessage()
+{
+    QString text = msgInput->text();
+    if (!text.isEmpty())
+    {
+        QJsonObject msg;
+        if(privateMode){
+            msg["type"] = "PRIVATE";
+            msg["target"] = privateTarget;
+        } else {
+            msg["type"] = "PUBLIC";
+        }
+        msg["content"] = text;
+        connection->sendMessage(QJsonDocument(msg).toJson(QJsonDocument::Compact));
+        msgInput->clear();
+    }
+}
+
+void MainWindow::changeNickname()
+{
+    bool ok;
+    QString newNick;
+    do {
+        newNick = QInputDialog::getText(this, "更改昵称",
+                "请输入新昵称:",
+                QLineEdit::Normal, nickname, &ok);
+        if (!ok) return;
+        newNick = newNick.trimmed();
+    } while (newNick.isEmpty()
+             || newNick == "未知" || newNick == "匿名");
+    nickname = newNick;
+    updateNicknameDisplay();
+}
+
+void MainWindow::setPrivateMode(QListWidgetItem *item)
+{
+    QString text = item->text();
+    if(!text.isEmpty())
+    {
+        privateTarget = text;
+        privateMode = true;
+    }
 }
