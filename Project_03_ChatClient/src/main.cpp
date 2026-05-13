@@ -3,10 +3,10 @@
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc,argv);
+    QApplication app(argc, argv);
 
     MainWindow window;
-    window.setWindowTitle("客户端");
+    window.setWindowTitle("聊天客户端");
     window.resize(800, 600);
     window.show();
 

@@ -13,6 +13,11 @@ class QSplitter;
 class QListWidgetItem;
 class QTimer;
 
+/**
+ * @brief 聊天客户端主窗口
+ *
+ * 提供连接管理、消息收发、用户列表、私聊、昵称管理、断线重连等功能。
+ */
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -24,7 +29,7 @@ private:
     void setupUI();
     void updateNicknameDisplay();
 
-    // 顶部连接栏
+    // ---- 顶部连接栏 ----
     QLineEdit *hostInput;
     QLineEdit *portInput;
     QPushButton *connectBtn;
@@ -33,12 +38,12 @@ private:
     QLabel *nickLabel;
     QPushButton *changeNickBtn;
 
-    // 中部
+    // ---- 中部 ----
     QSplitter *splitter;
     QListWidget *userList;
     QTextEdit *msgDisplay;
 
-    // 底部
+    // ---- 底部 ----
     QLineEdit *msgInput;
     QPushButton *sendBtn;
     QLabel *privateLabel;
@@ -48,13 +53,10 @@ public:
     void createConnection();
     void connectOn();
     void connectOff();
-
     void receiveMessage(const QString &raw);
     void sendMessage();
     void setPrivateMode(QListWidgetItem *item);
     void cancelPrivate();
-
-
     void changeNickname();
 
 private:

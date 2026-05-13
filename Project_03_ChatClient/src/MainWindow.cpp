@@ -31,12 +31,14 @@ MainWindow::MainWindow(QWidget *parent)
 
     connection = new ClientConnection(this);
 
+    // 断线重连定时器
     reconnectTimer = new QTimer(this);
     connect(reconnectTimer, &QTimer::timeout, this, [this]() {
         statusBar()->showMessage("正在尝试重新连接...", 0);
         createConnection();
     });
 
+    // 信号连接
     connect(connectBtn, &QPushButton::clicked,
         this, &MainWindow::createConnection);
     connect(connection, &ClientConnection::connected,
@@ -45,34 +47,20 @@ MainWindow::MainWindow(QWidget *parent)
         this, &MainWindow::connectOff);
     connect(connection, &ClientConnection::messageReceived,
         this, &MainWindow::receiveMessage);
-
-    // 错误处理
     connect(connection, &ClientConnection::errorOccurred,
         this, [this](QString error) {
         statusBar()->showMessage(error, 5000);
-        qDebug() << "错误:" << error;
     });
-
-    // 断开连接
-    connect(disconnectBtn, &QPushButton::clicked,
-        this, [this]() {
+    connect(disconnectBtn, &QPushButton::clicked, this, [this]() {
         intentionalDisconnect = true;
         connection->disconnectFromServer();
     });
-
-    // 发送消息
     connect(sendBtn, &QPushButton::clicked,
         this, &MainWindow::sendMessage);
-
-    // Enter 键发送
     connect(msgInput, &QLineEdit::returnPressed,
         sendBtn, &QPushButton::click);
-
-    // 更改昵称
     connect(changeNickBtn, &QPushButton::clicked,
         this, &MainWindow::changeNickname);
-
-    // 私聊功能
     connect(userList, &QListWidget::itemDoubleClicked,
         this, &MainWindow::setPrivateMode);
     connect(cancelBtn, &QPushButton::clicked,
@@ -81,13 +69,12 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::setupUI()
 {
-    // ====== 中央容器 ======
     QWidget *central = new QWidget();
     QVBoxLayout *mainLayout = new QVBoxLayout(central);
     mainLayout->setContentsMargins(6, 6, 6, 6);
     mainLayout->setSpacing(6);
 
-    // ====== 顶部：连接栏 ======
+    // 顶部：连接栏
     QWidget *topBar = new QWidget();
     QHBoxLayout *topLayout = new QHBoxLayout(topBar);
     topLayout->setContentsMargins(0, 0, 0, 0);
@@ -122,15 +109,12 @@ void MainWindow::setupUI()
     topBar->setFixedHeight(35);
     mainLayout->addWidget(topBar);
 
-    // ====== 中部：用户列表 + 聊天区域 ======
+    // 中部：用户列表 + 聊天区域
     splitter = new QSplitter(Qt::Horizontal);
-
-    // 左侧：用户列表
     userList = new QListWidget();
     userList->setMaximumWidth(200);
     splitter->addWidget(userList);
 
-    // 右侧：消息显示 + 输入栏
     QWidget *rightPanel = new QWidget();
     QVBoxLayout *rightLayout = new QVBoxLayout(rightPanel);
     rightLayout->setContentsMargins(0, 0, 0, 0);
@@ -140,7 +124,7 @@ void MainWindow::setupUI()
     msgDisplay->setReadOnly(true);
     rightLayout->addWidget(msgDisplay);
 
-    // 底部
+    // 私聊提示标签 + 取消按钮
     QWidget *privateMessage = new QWidget();
     QHBoxLayout *privateLayout = new QHBoxLayout(privateMessage);
     privateLayout->setContentsMargins(0, 0, 0, 0);
@@ -153,6 +137,7 @@ void MainWindow::setupUI()
     privateLayout->addStretch();
     rightLayout->addWidget(privateMessage);
 
+    // 底部输入栏
     QWidget *inputBar = new QWidget();
     QHBoxLayout *inputLayout = new QHBoxLayout(inputBar);
     inputLayout->setContentsMargins(0, 0, 0, 0);
@@ -168,14 +153,11 @@ void MainWindow::setupUI()
 
     rightLayout->addWidget(inputBar);
     splitter->addWidget(rightPanel);
-
-    splitter->setStretchFactor(0, 1);   // 用户列表 1 份
-    splitter->setStretchFactor(1, 3);   // 聊天区域 3 份
+    splitter->setStretchFactor(0, 1);
+    splitter->setStretchFactor(1, 3);
     mainLayout->addWidget(splitter);
 
     setCentralWidget(central);
-
-    // ====== 状态栏 ======
     statusBar()->showMessage("未连接到服务器");
 }
 
@@ -192,14 +174,12 @@ void MainWindow::createConnection()
         statusBar()->showMessage("端口号格式错误", 3000);
         return;
     }
-    QString host = hostInput->text();
-    connection->connectToServer(host, port);
+    connection->connectToServer(hostInput->text(), port);
 }
 
 void MainWindow::connectOn()
 {
     reconnectTimer->stop();
-    qDebug() << "连接成功";
     statusLabel->setText("● 已连接");
     statusBar()->showMessage("已连接到服务器");
     connectBtn->setEnabled(false);
@@ -208,6 +188,7 @@ void MainWindow::connectOn()
     msgInput->setEnabled(true);
     sendBtn->setEnabled(true);
     msgInput->setFocus();
+
     QJsonObject nickObj;
     nickObj["type"] = "NICK";
     nickObj["nickname"] = nickname;
@@ -216,7 +197,6 @@ void MainWindow::connectOn()
 
 void MainWindow::connectOff()
 {
-    qDebug() << "断开连接";
     statusLabel->setText("● 未连接");
     statusBar()->showMessage("已断开连接");
     connectBtn->setEnabled(true);
@@ -226,6 +206,7 @@ void MainWindow::connectOff()
     sendBtn->setEnabled(false);
     userList->clear();
     cancelPrivate();
+
     if (!intentionalDisconnect) {
         statusBar()->showMessage("连接断开，正在尝试重新连接...", 0);
         reconnectTimer->start(3000);
@@ -235,7 +216,6 @@ void MainWindow::connectOff()
 
 void MainWindow::receiveMessage(const QString &raw)
 {
-    // 解析 JSON
     QJsonDocument doc = QJsonDocument::fromJson(raw.toUtf8());
     if (doc.isNull()) return;
 
@@ -243,18 +223,12 @@ void MainWindow::receiveMessage(const QString &raw)
     QString type = obj["type"].toString();
 
     if (type == "PUBLIC") {
-        QString sender = obj["sender"].toString();
-        QString time = obj["time"].toString();
-        QString content = obj["content"].toString();
-        msgDisplay->append(QString("[%1] [%2]: %3").arg(time, sender, content));
-
+        msgDisplay->append(QString("[%1] [%2]: %3")
+            .arg(obj["time"].toString(), obj["sender"].toString(), obj["content"].toString()));
     } else if (type == "USERLIST") {
         userList->clear();
-        QJsonArray users = obj["users"].toArray();
-        for (const auto &u : users) {
+        for (const auto &u : obj["users"].toArray())
             userList->addItem(u.toString());
-        }
-
     } else if (type == "SYSTEM") {
         QString content = obj["content"].toString();
         if (content.contains("已被使用")) {
@@ -263,40 +237,30 @@ void MainWindow::receiveMessage(const QString &raw)
         } else {
             msgDisplay->append("【" + content + "】");
         }
-
     } else if (type == "PRIVATE") {
         QString sender = obj["sender"].toString();
         QString time = obj["time"].toString();
         QString content = obj["content"].toString();
         QString receiver = obj["receiver"].toString();
-
-        if (receiver == nickname) {
+        if (receiver == nickname)
             msgDisplay->append(QString("[%1] [%2 → 你]：%3").arg(time, sender, content));
-
-        }else {
+        else
             msgDisplay->append(QString("[%1] [你 → %2]: %3").arg(time, receiver, content));
-
-        }
     }
 }
 
 void MainWindow::sendMessage()
 {
     QString text = msgInput->text();
-    if (!text.isEmpty())
-    {
-        QJsonObject msg;
-        if(privateMode){
-            msg["type"] = "PRIVATE";
-            msg["target"] = privateTarget;
-        } else {
-            msg["type"] = "PUBLIC";
-        }
-        msg["content"] = text;
-        connection->sendMessage(QJsonDocument(msg).toJson(QJsonDocument::Compact));
-        msgInput->clear();
-        cancelPrivate();
-    }
+    if (text.isEmpty()) return;
+
+    QJsonObject msg;
+    msg["type"] = privateMode ? "PRIVATE" : "PUBLIC";
+    if (privateMode) msg["target"] = privateTarget;
+    msg["content"] = text;
+    connection->sendMessage(QJsonDocument(msg).toJson(QJsonDocument::Compact));
+    msgInput->clear();
+    cancelPrivate();
 }
 
 void MainWindow::changeNickname()
@@ -305,12 +269,11 @@ void MainWindow::changeNickname()
     QString newNick;
     do {
         newNick = QInputDialog::getText(this, "更改昵称",
-                "请输入新昵称:",
-                QLineEdit::Normal, nickname, &ok);
+                "请输入新昵称:", QLineEdit::Normal, nickname, &ok);
         if (!ok) return;
         newNick = newNick.trimmed();
-    } while (newNick.isEmpty()
-             || newNick == "未知" || newNick == "匿名");
+    } while (newNick.isEmpty() || newNick == "未知" || newNick == "匿名");
+
     nickname = newNick;
     updateNicknameDisplay();
 }
@@ -318,16 +281,14 @@ void MainWindow::changeNickname()
 void MainWindow::setPrivateMode(QListWidgetItem *item)
 {
     QString text = item->text();
-    if(text==nickname)return;
-    if(!text.isEmpty())
-    {
-        privateTarget = text;
-        privateMode = true;
-        privateLabel->setText("私聊给:" + privateTarget);
-        privateLabel->setVisible(true);
-        cancelBtn->setVisible(true);
-        msgInput->setFocus();
-    }
+    if (text == nickname || text.isEmpty()) return;
+
+    privateTarget = text;
+    privateMode = true;
+    privateLabel->setText("私聊给:" + privateTarget);
+    privateLabel->setVisible(true);
+    cancelBtn->setVisible(true);
+    msgInput->setFocus();
 }
 
 void MainWindow::cancelPrivate()
