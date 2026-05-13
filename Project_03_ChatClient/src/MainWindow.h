@@ -11,6 +11,7 @@ class QTextEdit;
 class QListWidget;
 class QSplitter;
 class QListWidgetItem;
+class QTimer;
 
 class MainWindow : public QMainWindow
 {
@@ -58,10 +59,12 @@ public:
 
 private:
     ClientConnection *connection;
+    QTimer *reconnectTimer;
     QString nickname;
 
     bool privateMode;
     QString privateTarget;
+    bool intentionalDisconnect;
 };
 
 #endif

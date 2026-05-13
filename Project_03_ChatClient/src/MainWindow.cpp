@@ -15,6 +15,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QTimer>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -26,8 +27,15 @@ MainWindow::MainWindow(QWidget *parent)
 
     privateMode = false;
     privateTarget.clear();
+    intentionalDisconnect = false;
 
     connection = new ClientConnection(this);
+
+    reconnectTimer = new QTimer(this);
+    connect(reconnectTimer, &QTimer::timeout, this, [this]() {
+        statusBar()->showMessage("正在尝试重新连接...", 0);
+        createConnection();
+    });
 
     connect(connectBtn, &QPushButton::clicked,
         this, &MainWindow::createConnection);
@@ -47,7 +55,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     // 断开连接
     connect(disconnectBtn, &QPushButton::clicked,
-        connection, &ClientConnection::disconnectFromServer);
+        this, [this]() {
+        intentionalDisconnect = true;
+        connection->disconnectFromServer();
+    });
 
     // 发送消息
     connect(sendBtn, &QPushButton::clicked,
@@ -187,6 +198,7 @@ void MainWindow::createConnection()
 
 void MainWindow::connectOn()
 {
+    reconnectTimer->stop();
     qDebug() << "连接成功";
     statusLabel->setText("● 已连接");
     statusBar()->showMessage("已连接到服务器");
@@ -213,6 +225,12 @@ void MainWindow::connectOff()
     msgInput->setEnabled(false);
     sendBtn->setEnabled(false);
     userList->clear();
+    cancelPrivate();
+    if (!intentionalDisconnect) {
+        statusBar()->showMessage("连接断开，正在尝试重新连接...", 0);
+        reconnectTimer->start(3000);
+    }
+    intentionalDisconnect = false;
 }
 
 void MainWindow::receiveMessage(const QString &raw)
