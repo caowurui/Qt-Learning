@@ -1,0 +1,10 @@
+{
+  "lsp": {
+    "clangd": {
+      "binary": {
+        // "path": "/path/to/clangd",
+        "arguments": ["--header-insertion=never"],
+      },
+    },
+  },
+}

@@ -3,6 +3,10 @@
 
 #include <QMainWindow>
 
+class QPushButton;
+class QSlider;
+class QLabel;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -10,6 +14,17 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget* parent = nullptr);
 
+
+private:
+    QPushButton *lastSongBtn;
+    QPushButton *nextSongBtn;
+    QPushButton *stopBtn;
+    QPushButton *enableVolumeBtn;
+    QSlider *volumeSlider;
+
+    QLabel *currentTimeLabel;
+    QSlider *processSlider;
+    QLabel *totalTimeLabel;
 };
 
 #endif
