@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 
+class MusicPlayer;
+
 class QPushButton;
 class QSlider;
 class QLabel;
@@ -22,9 +24,14 @@ private:
     QPushButton *enableVolumeBtn;
     QSlider *volumeSlider;
 
+    QPushButton *openFileBtn;
+
     QLabel *currentTimeLabel;
     QSlider *processSlider;
     QLabel *totalTimeLabel;
+
+private:
+    MusicPlayer *player;
 };
 
 #endif

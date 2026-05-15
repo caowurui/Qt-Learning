@@ -1,8 +1,10 @@
 #include "MainWindow.h"
+#include "MusicPlayer.h"
 #include <QPushButton>
 #include <QBoxLayout>
 #include <QSlider>
 #include <QLabel>
+#include <QFileDialog>
 
 MainWindow::MainWindow(QWidget* parent)
     :QMainWindow(parent)
@@ -14,7 +16,9 @@ MainWindow::MainWindow(QWidget* parent)
     stopBtn = new QPushButton("▶");
     enableVolumeBtn = new QPushButton("🔊");
     volumeSlider = new QSlider(Qt::Orientation::Horizontal);
+    openFileBtn = new QPushButton("打开...");
     upperControl->setLayout(upperLayout);
+    upperLayout->addWidget(openFileBtn);
     upperLayout->addWidget(lastSongBtn);
     upperLayout->addWidget(stopBtn);
     upperLayout->addWidget(nextSongBtn);
@@ -35,4 +39,16 @@ MainWindow::MainWindow(QWidget* parent)
     centralLayout->addWidget(upperControl);
     centralLayout->addWidget(lowerWidget);
     setCentralWidget(centralWidget);
+
+
+    player = new MusicPlayer(this);
+
+    connect(openFileBtn,&QPushButton::clicked,
+        this,[this](){
+            QString file = QFileDialog::getOpenFileName(this,"选择音乐文件");
+            if(!file.isEmpty())
+            {
+                player->play(file);
+            }
+        });
 }

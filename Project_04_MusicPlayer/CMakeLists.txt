@@ -13,10 +13,12 @@ find_package(Qt6 REQUIRED COMPONENTS
 set(SOURCES
     src/main.cpp
     src/MainWindow.cpp
+    src/MusicPlayer.cpp
 )
 
 set(HEADERS
     src/MainWindow.h
+    src/MusicPlayer.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
@@ -28,6 +30,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 target_link_libraries(${PROJECT_NAME} PRIVATE
     Qt6::Core
     Qt6::Widgets
+    Qt6::Multimedia
 )
 
 if(MSVC)

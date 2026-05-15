@@ -10,7 +10,7 @@
 
 ### 阶段一：播放核心
 
-- [ ] **1. 创建主窗口框架**
+- [x] **1. 创建主窗口框架**
   - 创建 `main.cpp` 和 `MainWindow`
   - 设计布局：顶部是播放控制栏，中部是播放列表/专辑封面，底部是进度条
   - 涉及类：`QMainWindow`, `QVBoxLayout`, `QHBoxLayout`
