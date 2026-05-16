@@ -32,6 +32,9 @@ private:
 
 private:
     MusicPlayer *player;
+    bool isPause;
+    bool isMuted;
+    qreal volume;
 };
 
 #endif

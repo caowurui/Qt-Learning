@@ -26,7 +26,7 @@ public:
 
     qint64 position();
     qint64 duration();
-    void seek(qint64 position);
+    void setPosition(qint64 position);
 
 signals:
     void positionChanged(qint64 position);

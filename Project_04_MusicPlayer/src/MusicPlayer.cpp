@@ -9,18 +9,21 @@ MusicPlayer::MusicPlayer(QObject *parent)
     audioOutput = new QAudioOutput(this);
     player->setAudioOutput(audioOutput);
 
-    // connect(player,&QMediaPlayer::positionChanged,
-    //     this, [this](qint64 position){
-    //         emit positionChanged(position);
-    //     });
-    // connect(player,&QMediaPlayer::durationChanged,
-    //     this, [this](qint64 duration){
-    //         emit durationChanged(duration);
-    //     });
-    // connect(player,&QMediaPlayer::mediaStatusChanged,
-    //     this, [this](bool playing){
-
-    //     });
+    connect(player,&QMediaPlayer::positionChanged,
+        this, [this](qint64 position){
+            emit positionChanged(position);
+        });
+    connect(player,&QMediaPlayer::durationChanged,
+        this, [this](qint64 duration){
+            emit durationChanged(duration);
+        });
+    connect(player,&QMediaPlayer::mediaStatusChanged,
+        this, [this](QMediaPlayer::MediaStatus status){
+            if(status==QMediaPlayer::EndOfMedia)
+            {
+                emit mediaFinished();
+            }
+        });
     // connect(player,&QMediaPlayer::playbackStateChanged,
     //     this,[this](){
 
@@ -29,18 +32,20 @@ MusicPlayer::MusicPlayer(QObject *parent)
 
 void MusicPlayer::play(const QString &filePath)
 {
-    player->setSource(QUrl(filePath));
+    player->setSource(QUrl::fromLocalFile(filePath));
     play();
 }
 
 void MusicPlayer::play()
 {
-    player->play();
+    // if(player->isAvailable())
+        player->play();
 }
 
 void MusicPlayer::pause()
 {
-    player->pause();
+    // if(player->isAvailable())
+        player->pause();
 }
 
 void MusicPlayer::togglePlayPause()
@@ -79,7 +84,7 @@ qint64 MusicPlayer::duration()
     return player->duration();
 }
 
-void MusicPlayer::seek(qint64 position)
+void MusicPlayer::setPosition(qint64 position)
 {
     player->setPosition(position);
 }
